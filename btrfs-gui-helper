@@ -1,0 +1,10 @@
+#!/usr/bin/python
+
+"""Helper for the btrfs GUI. This tool is run as a subordinate process
+to the GUI, but is run as root, giving it full access to the
+filesystem data. Communication between the two is via stdin/stdout,
+and returned data from this process is JSON."""
+
+from btrfsgui.helper import main
+
+main()
