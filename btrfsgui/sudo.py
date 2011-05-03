@@ -26,9 +26,10 @@ def init_root_process(params):
 	if params.ssh:
 		cmd[0:0] = ["ssh"] + params.ssh.split(" ")
 
-	print cmd
+	print(cmd)
 	subproc = subprocess.Popen(
-		cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+		cmd, universal_newlines=True,
+		stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
 	if os.geteuid() == 0:
 		# We're root already -- see if we know where we came from via

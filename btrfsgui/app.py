@@ -3,7 +3,7 @@
 """Main GUI application code: define and manage the top-level window
 """
 
-from Tkinter import *
+from tkinter import *
 import json
 
 def get_data(f):
@@ -81,7 +81,7 @@ class Application(Frame):
 		self.comms.stdin.write("scan\n")
 		self.comms.stdin.flush()
 		rv, text, obj = get_data(self.comms.stdout)
-		print "GUI: scan result", rv, obj
+		print("GUI: scan result", rv, obj)
 
 	def quit_all(self):
 		self.comms.stdin.write("quit\n")
