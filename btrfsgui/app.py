@@ -4,6 +4,7 @@
 """
 
 from tkinter import *
+from tkinter.ttk import *
 import json
 
 class Requester(object):
@@ -73,6 +74,20 @@ class Application(Frame, Requester):
 		top.columnconfigure(0, weight=1)
 		self.rowconfigure(0, weight=1)
 		self.columnconfigure(0, weight=1)
+
+		style = Style()
+		style.configure("Debug.TPanedwindow", background="#f00")
+		style.configure("Debug.TFrame", background="#0f0")
+
+		self.LRpane = PanedWindow(self, orient=HORIZONTAL)
+		self.LRpane.grid(sticky=N+S+E+W)
+
+		self.sidebar = PanedWindow(self.LRpane, orient=VERTICAL)
+		self.LRpane.add(self.sidebar)
+		self.datapane = Frame(self.LRpane)
+		self.LRpane.add(self.datapane)
+
+		fs_frame = Frame(self.sidebar)
 
 		self.create_menus(top)
 
