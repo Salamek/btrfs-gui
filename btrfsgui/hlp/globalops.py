@@ -22,6 +22,10 @@ def scan(line, state):
 		if not line.startswith("Label:"):
 			continue
 		tmp, label, tmp, uuid = line.split()
+		if label == "none":
+			label = None
+		else:
+			label = label[1:-1] # Strip surrounding '' from the label
 		sys.stderr.write("Helper: found label {0}, UUID {1}\n".format(label, uuid))
 		fslist.append({"label": label, "uuid": uuid})
 
