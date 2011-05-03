@@ -90,8 +90,8 @@ class Application(Frame, Requester):
 		self.file_menu.add_command(label="Quit", accelerator="Ctrl-Q",
 								   command=self.quit_all)
 		
-		self.bind_all("<Control-KeyPress-q>", self.quit_all)
-		self.bind_all("<Control-Shift-KeyPress-s>", self.scan)
+		self.bind_all("<Control-KeyPress-q>", lambda x: self.quit_all())
+		self.bind_all("<Control-KeyPress-S>", lambda x: self.scan())
 
 		self.main_menu.add_cascade(label="Filesystems", menu=self.file_menu)
 
