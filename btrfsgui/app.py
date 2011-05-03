@@ -6,41 +6,59 @@
 from tkinter import *
 import json
 
-def get_data(f):
-	"""Parse the stream in file object f, and return the data correctly.
+class Requester(object):
+	"""Mixin class for classes which make requests of the root-level
+	helper process. Flush requests, parse return values, and the like.
 	"""
-	ret = None
-	while True:
-		line = f.readline()
-		if line.startswith("OK") or line.startswith("ERR"):
-			tmp, rv, message = line.split(None, 2)
-			break
-		try:
-			ret = json.loads(line)
-		except ValueError:
-			return (599, "Unparsable data", None)
-	return (rv, message, ret)
+	def __init__(self, comms):
+		self.comms = comms
 
-def get_data_array(f):
-	"""Parse repeated lines of output in file object f, and return the
-	data correctly."""
-	ret = []
-	while True:
-		line = f.readline()
-		if line.startswith("OK") or line.startswith("ERR"):
-			tmp, rv, message = line.split(None, 2)
-			break
-		try:
-			ret.append(json.loads(line))
-		except ValueError:
-			return (599, "Unparsable data", None)
-	return (rv, message, ret)
+	def request(self, req):
+		"""Send a request, parse the result stream in file object f,
+		and return the data correctly.
+		"""
+		ret = None
 
-class Application(Frame):
+		self.comms.stdin.write(req)
+		self.comms.stdin.flush()
+
+		while True:
+			line = self.comms.stdout.readline()
+			if line.startswith("OK") or line.startswith("ERR"):
+				tmp, rv, message = line.split(None, 2)
+				break
+			try:
+				ret = json.loads(line)
+			except ValueError:
+				return (599, "Unparsable data", None)
+		return (rv, message, ret)
+
+	def request_array(self, req):
+		"""Send a requrest, parse repeated lines of output in file
+		object f, and return the data correctly.
+		"""
+		ret = []
+
+		self.comms.stdin.write(req)
+		self.comms.stdin.flush()
+
+		while True:
+			line = self.comms.stdout.readline()
+			if line.startswith("OK") or line.startswith("ERR"):
+				tmp, rv, message = line.split(None, 2)
+				break
+			try:
+				ret.append(json.loads(line))
+			except ValueError:
+				return (599, "Unparsable data", None)
+		return (rv, message, ret)
+
+
+class Application(Frame, Requester):
 	def __init__(self, comms, options):
 		Frame.__init__(self, None)
+		Requester.__init__(self, comms)
 
-		self.comms = comms
 		self.options = options
 
 		self.grid(sticky=N+S+E+W)
@@ -78,12 +96,9 @@ class Application(Frame):
 		self.main_menu.add_cascade(label="Filesystems", menu=self.file_menu)
 
 	def scan(self):
-		self.comms.stdin.write("scan\n")
-		self.comms.stdin.flush()
-		rv, text, obj = get_data(self.comms.stdout)
+		rv, text, obj = self.request("scan\n")
 		print("GUI: scan result", rv, obj)
 
 	def quit_all(self):
-		self.comms.stdin.write("quit\n")
-		self.comms.stdin.flush()
+		self.request("quit\n")
 		self.quit()
