@@ -63,8 +63,15 @@ class Application(Frame, Requester):
 		self.options = options
 
 		self.grid(sticky=N+S+E+W)
+		self.set_styles()
 		self.create_widgets()
 		self.master.title("btrfs GUI")
+
+	def set_styles(self):
+		self.style = style = Style()
+		style.configure("Debug.TPanedwindow", background="#f00")
+		style.configure("Debug.TFrame", background="#0f0")
+		style.configure("Debug.TLabel", background="#ff0")
 
 	def create_widgets(self):
 		top = self.winfo_toplevel()
@@ -74,10 +81,6 @@ class Application(Frame, Requester):
 		top.columnconfigure(0, weight=1)
 		self.rowconfigure(0, weight=1)
 		self.columnconfigure(0, weight=1)
-
-		style = Style()
-		style.configure("Debug.TPanedwindow", background="#f00")
-		style.configure("Debug.TFrame", background="#0f0")
 
 		self.LRpane = PanedWindow(self, orient=HORIZONTAL)
 		self.LRpane.grid(sticky=N+S+E+W)
