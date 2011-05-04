@@ -36,6 +36,8 @@ def main():
 		sys.stdin.flush()
 		line = sys.stdin.readline()
 		line = line[:-1] # Chop off the trailing \n
+		if line == "":
+			break
 		try:
 			command, line = line.split(None, 1)
 		except ValueError:
