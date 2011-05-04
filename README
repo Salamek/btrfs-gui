@@ -1,0 +1,17 @@
+btrfs-gui
+=========
+
+This is a GUI tool for managing btrfs filesystems. It can scan,
+display, and manage btrfs-specific operations on btrfs filesystems
+either on the local machine, or on a remote one (via ssh).
+
+The application requires the use of python 3.x for the GUI, and can
+run the root-level helper using python 2.x (python 3.x version coming
+shortly).
+
+Copyright and Licensing
+=======================
+
+Coypright ©2011 HRMills <hugo@carfax.org.uk>
+
+This software is licensed under the terms of the GPL, version 3 only.
