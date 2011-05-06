@@ -4,6 +4,7 @@
 """
 
 from tkinter import *
+from tkinter.ttk import *
 import json
 
 class Requester(object):
@@ -62,8 +63,15 @@ class Application(Frame, Requester):
 		self.options = options
 
 		self.grid(sticky=N+S+E+W)
+		self.set_styles()
 		self.create_widgets()
 		self.master.title("btrfs GUI")
+
+	def set_styles(self):
+		self.style = style = Style()
+		style.configure("Debug.TPanedwindow", background="#f00")
+		style.configure("Debug.TFrame", background="#0f0")
+		style.configure("Debug.TLabel", background="#ff0")
 
 	def create_widgets(self):
 		top = self.winfo_toplevel()
@@ -73,6 +81,26 @@ class Application(Frame, Requester):
 		top.columnconfigure(0, weight=1)
 		self.rowconfigure(0, weight=1)
 		self.columnconfigure(0, weight=1)
+
+		self.LRpane = PanedWindow(self, orient=HORIZONTAL)
+		self.LRpane.grid(sticky=N+S+E+W)
+
+		self.sidebar = PanedWindow(self.LRpane, orient=VERTICAL)
+		self.LRpane.add(self.sidebar)
+		self.datapane = Frame(self.LRpane)
+		self.LRpane.add(self.datapane)
+
+		fs_frame = Frame(self.sidebar)
+		fs_frame.rowconfigure(1, weight=1)
+		fs_frame.columnconfigure(0, weight=1)
+		fs_frame_label = Label(fs_frame, text="Filesystems")
+		fs_frame_label.grid(sticky=N+S+W)
+		self.fs_list_pos = IntVar()
+		self.fs_list = Treeview(
+			fs_frame,
+			columns=["", "UUID"])
+		self.fs_list.grid(sticky=N+S+E+W)
+		self.sidebar.add(fs_frame)
 
 		self.create_menus(top)
 
@@ -97,7 +125,12 @@ class Application(Frame, Requester):
 
 	def scan(self):
 		rv, text, obj = self.request("scan\n")
-		print("GUI: scan result", rv, obj)
+		self.fs_list.set_children("")
+
+		for fs in obj:
+			self.fs_list.insert("", "end", iid=fs["uuid"], text=fs["label"],
+								values=(fs["uuid"],))
+			self.fs_list.insert(fs["uuid"], 0, iid="BLANK")
 
 	def quit_all(self):
 		self.request("quit\n")
