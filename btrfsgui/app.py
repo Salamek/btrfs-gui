@@ -128,9 +128,21 @@ class Application(Frame, Requester):
 		self.fs_list.set_children("")
 
 		for fs in obj:
-			self.fs_list.insert("", "end", iid=fs["uuid"], text=fs["label"],
-								values=(fs["uuid"],))
-			self.fs_list.insert(fs["uuid"], 0, iid="BLANK")
+			lbl = fs["label"]
+			if lbl is None:
+				lbl = "(unlabelled)"
+			iid = self.fs_list.insert(
+				"", "end",
+				iid=fs["uuid"],
+				text=lbl,
+				values=(fs["uuid"],))
+
+			fs["vols"].sort(key=lambda x: x["path"])
+			for vol in fs["vols"]:
+				iid = self.fs_list.insert(
+					fs["uuid"], "end",
+					iid=fs["uuid"]+":"+vol["id"],
+					text=vol["path"])
 
 	def quit_all(self):
 		self.request("quit\n")

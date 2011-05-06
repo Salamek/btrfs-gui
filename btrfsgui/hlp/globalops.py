@@ -19,15 +19,23 @@ def scan(line, state):
 								stderr=devnull, stdout=subprocess.PIPE).stdout
 	fslist = []
 	for line in scandata:
-		if not line.startswith("Label:"):
+		if line.startswith("Label:"):
+			tmp, label, tmp, uuid = line.split()
+			if label == "none":
+				label = None
+			else:
+				label = label[1:-1] # Strip surrounding '' from the label
+			sys.stderr.write("Helper: found label {0}, UUID {1}\n".format(label, uuid))
+			volumes = []
+			fslist.append({"label": label, "uuid": uuid, "vols": volumes})
 			continue
-		tmp, label, tmp, uuid = line.split()
-		if label == "none":
-			label = None
-		else:
-			label = label[1:-1] # Strip surrounding '' from the label
-		sys.stderr.write("Helper: found label {0}, UUID {1}\n".format(label, uuid))
-		fslist.append({"label": label, "uuid": uuid})
+
+		line = line.strip()
+		if line.startswith("devid"):
+			spl = line.split()
+			sys.stderr.write("Helper: found dev {0[1]} = {0[7]}\n".format(spl))
+			volumes.append({"id": spl[1], "path": spl[7]})
+			continue
 
 	sys.stdout.write(json.dumps(fslist))
 	sys.stdout.write("\n")
