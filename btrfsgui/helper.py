@@ -4,6 +4,7 @@ import sys
 import traceback
 
 import hlp.globalops
+import hlp.size
 
 class HelperState(object):
 	pass
@@ -63,4 +64,5 @@ COMMANDS = {
 	"scan": hlp.globalops.scan,
 	"open": open_fs,
 	"close": close_fs,
+	"df": hlp.size.df,
 	}
