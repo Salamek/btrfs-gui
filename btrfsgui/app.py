@@ -56,7 +56,8 @@ class Application(Frame, btrfsgui.requester.Requester):
 		self.fs_list.grid(sticky=N+S+E+W)
 		self.sidebar.add(fs_frame)
 
-		self.usage = btrfsgui.usagedisplay.UsageDisplay(self.datapane)
+		self.usage = btrfsgui.usagedisplay.UsageDisplay(
+			self.datapane, self.comms)
 		self.usage.grid(sticky=N+S+E+W)
 
 		self.create_menus(top)
