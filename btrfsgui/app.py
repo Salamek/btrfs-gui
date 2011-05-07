@@ -5,60 +5,14 @@
 
 from tkinter import *
 from tkinter.ttk import *
-import json
 
-class Requester(object):
-	"""Mixin class for classes which make requests of the root-level
-	helper process. Flush requests, parse return values, and the like.
-	"""
-	def __init__(self, comms):
-		self.comms = comms
+import btrfsgui.usagedisplay
+import btrfsgui.requester
 
-	def request(self, req):
-		"""Send a request, parse the result stream in file object f,
-		and return the data correctly.
-		"""
-		ret = None
-
-		self.comms.stdin.write(req)
-		self.comms.stdin.flush()
-
-		while True:
-			line = self.comms.stdout.readline()
-			if line.startswith("OK") or line.startswith("ERR"):
-				tmp, rv, message = line.split(None, 2)
-				break
-			try:
-				ret = json.loads(line)
-			except ValueError:
-				return (599, "Unparsable data", None)
-		return (rv, message, ret)
-
-	def request_array(self, req):
-		"""Send a requrest, parse repeated lines of output in file
-		object f, and return the data correctly.
-		"""
-		ret = []
-
-		self.comms.stdin.write(req)
-		self.comms.stdin.flush()
-
-		while True:
-			line = self.comms.stdout.readline()
-			if line.startswith("OK") or line.startswith("ERR"):
-				tmp, rv, message = line.split(None, 2)
-				break
-			try:
-				ret.append(json.loads(line))
-			except ValueError:
-				return (599, "Unparsable data", None)
-		return (rv, message, ret)
-
-
-class Application(Frame, Requester):
+class Application(Frame, btrfsgui.requester.Requester):
 	def __init__(self, comms, options):
 		Frame.__init__(self, None)
-		Requester.__init__(self, comms)
+		btrfsgui.requester.Requester.__init__(self, comms)
 
 		self.options = options
 
@@ -102,6 +56,9 @@ class Application(Frame, Requester):
 		self.fs_list.grid(sticky=N+S+E+W)
 		self.sidebar.add(fs_frame)
 
+		self.usage = btrfsgui.usagedisplay.UsageDisplay(self.datapane)
+		self.usage.grid(sticky=N+S+E+W)
+
 		self.create_menus(top)
 
 	def create_menus(self, top):
@@ -143,6 +100,8 @@ class Application(Frame, Requester):
 					fs["uuid"], "end",
 					iid=fs["uuid"]+":"+vol["id"],
 					text=vol["path"])
+
+		self.usage.set_display(obj[0])
 
 	def quit_all(self):
 		self.request("quit\n")
