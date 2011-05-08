@@ -191,11 +191,27 @@ class UsageDisplay(Frame, Requester):
 		lbl = Label(self, text="Metadata")
 		lbl.grid(column=len(COLOURS), row=2, sticky=N+S+W)
 
-		self.df_display = Canvas(self,
+		box = LabelFrame(self, text="Data replication and allocation")
+		box.grid(sticky=N+S+E+W, row=3, column=0, columnspan=len(COLOURS)+1)
+		box.columnconfigure(2, weight=1)
+		self.df_display = Canvas(box,
 								 width=DF_BOX_WIDTH+2*DF_BOX_PADDING,
 								 height=DF_BOX_HEIGHT+2*DF_BOX_PADDING)
-		self.df_display.grid(sticky=N+S+E+W, row=3, column=0,
-							 columnspan=len(COLOURS)+1)
+		self.df_display.grid(sticky=N+S+E+W, columnspan=3)
+
+		self.df_selection = StringVar()
+		Label(box, text="Show unallocated space").grid(row=1, column=0)
+		Radiobutton(
+			box, text="Allocated only",
+			variable=self.df_selection,
+			value="alloc").grid(
+			row=1, column=1, sticky=W)
+		Radiobutton(
+			box, text="As raw space",
+			variable=self.df_selection,
+			value="raw").grid(
+			row=2, column=1, sticky=W)
+		self.df_selection.set("alloc")
 
 	def set_display(self, fs):
 		"""Pass parameters for the basic FS information so that we
