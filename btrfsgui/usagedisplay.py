@@ -201,16 +201,18 @@ class UsageDisplay(Frame, Requester):
 
 		self.df_selection = StringVar()
 		Label(box, text="Show unallocated space").grid(row=1, column=0)
-		Radiobutton(
+		but = Radiobutton(
 			box, text="Allocated only",
 			variable=self.df_selection,
-			value="alloc").grid(
-			row=1, column=1, sticky=W)
-		Radiobutton(
+			value="alloc")
+		but.bind("<ButtonRelease-1>", lambda e: self.update_display())
+		but.grid(row=1, column=1, sticky=W)
+		but = Radiobutton(
 			box, text="As raw space",
 			variable=self.df_selection,
-			value="raw").grid(
-			row=2, column=1, sticky=W)
+			value="raw")
+		but.bind("<ButtonRelease-1>", lambda e: self.update_display())
+		but.grid(row=2, column=1, sticky=W)
 		self.df_selection.set("alloc")
 
 	def set_display(self, fs):
@@ -218,14 +220,18 @@ class UsageDisplay(Frame, Requester):
 		know how to get the relevant information from the helper.
 		"""
 		self.fs = fs
+		self.update_display()
 
+	def update_display(self):
+		# Clean up the existing display
 		self.df_display.delete("all")
 		self.df_display.create_rectangle(
 			DF_BOX_PADDING-1, DF_BOX_PADDING-1,
 			DF_BOX_PADDING+DF_BOX_WIDTH, DF_BOX_PADDING+DF_BOX_HEIGHT,
 			width=1, fill="#00ff00", tags=("all", "outline"))
 
-		rv, text, obj = self.request("df {0[uuid]}\n".format(fs))
+		# Get the allocation and usage of all the block group types
+		rv, text, obj = self.request("df {0[uuid]}\n".format(self.fs))
 		data = SplitBox(orient=SplitBox.VERTICAL)
 		meta = SplitBox(orient=SplitBox.VERTICAL)
 		sys = SplitBox(orient=SplitBox.VERTICAL)
