@@ -34,7 +34,7 @@ def scan(line, state):
 		if line.startswith("devid"):
 			spl = line.split()
 			sys.stderr.write("Helper: found dev {0[1]} = {0[7]}\n".format(spl))
-			volumes.append({"id": spl[1], "path": spl[7]})
+			volumes.append({"id": int(spl[1]), "path": spl[7]})
 			continue
 
 	sys.stdout.write(json.dumps(fslist))

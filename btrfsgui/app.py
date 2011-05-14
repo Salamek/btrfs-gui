@@ -99,7 +99,7 @@ class Application(Frame, btrfsgui.requester.Requester):
 			for vol in fs["vols"]:
 				iid = self.fs_list.insert(
 					fs["uuid"], "end",
-					iid=fs["uuid"]+":"+vol["id"],
+					iid="{0}:{1}".format(fs["uuid"], vol["id"]),
 					text=vol["path"])
 
 		self.usage.set_display(obj[0])
