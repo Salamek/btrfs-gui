@@ -13,6 +13,7 @@ COLOURS = collections.OrderedDict(
 	 ("RAID1", ("#7f0000", "#00007f", "#000000")),
 	 ("RAID10", ("#bf7f00", "#007f7f", "#000000")),
 	 ])
+COLOUR_UNUSED = "#ffffff"
 
 DF_BOX_PADDING = 20
 DF_BOX_WIDTH = 400
@@ -227,25 +228,18 @@ class UsageDisplay(Frame, Requester):
 		self.fs = fs
 		self.update_display()
 
-	def create_usage_box(self, canvas, input_data):
+	def create_usage_box(self, canvas, input_data, size=0):
 		"""Analyse the individual chunks of input data, categorise the
 		space usage, and draw a usage box into the canvas. Data must
 		be an array of dictionaries, with keys 'flags', 'size' and
 		'used'."""
+		freespace = size
+
 		data = SplitBox(orient=SplitBox.VERTICAL)
 		meta = SplitBox(orient=SplitBox.VERTICAL)
 		sys = SplitBox(orient=SplitBox.VERTICAL)
+		free = SplitBox(orient=SplitBox.VERTICAL)
 		for bg_type in input_data:
-			if bg_type["flags"] & BTRFS_BLOCK_GROUP_DATA:
-				destination = data
-				col = 0
-			if bg_type["flags"] & BTRFS_BLOCK_GROUP_METADATA:
-				destination = meta
-				col = 1
-			if bg_type["flags"] & BTRFS_BLOCK_GROUP_SYSTEM:
-				destination = sys
-				col = 2
-
 			if bg_type["flags"] & BTRFS_BLOCK_GROUP_RAID0:
 				typ = "RAID0"
 			elif bg_type["flags"] & BTRFS_BLOCK_GROUP_RAID1:
@@ -257,13 +251,26 @@ class UsageDisplay(Frame, Requester):
 			else:
 				typ = "Single"
 
+			if bg_type["flags"] & BTRFS_BLOCK_GROUP_DATA:
+				destination = data
+				col = COLOURS[typ][0]
+			if bg_type["flags"] & BTRFS_BLOCK_GROUP_METADATA:
+				destination = meta
+				col = COLOURS[typ][1]
+			if bg_type["flags"] & BTRFS_BLOCK_GROUP_SYSTEM:
+				destination = sys
+				col = COLOURS[typ][2]
+
 			usedfree = SplitBox(orient=SplitBox.HORIZONTAL)
 			usedfree.append((bg_type["used"],
-							 { "fill": COLOURS[typ][col] }))
+							 { "fill": col }))
 			usedfree.append((bg_type["size"]-bg_type["used"],
-							 { "fill": COLOURS[typ][col], "stripe": fade(COLOURS[typ][col]) }))
+							 { "fill": col, "stripe": fade(col) }))
 			destination.append((usedfree.total, usedfree))
-		
+			freespace -= bg_type["size"]
+
+		free.append((freespace, { "fill": COLOUR_UNUSED }))
+
 		# total is our whole block
 		# *_total are the three main divisions
 		box = SplitBox(orient=SplitBox.HORIZONTAL)
@@ -273,6 +280,8 @@ class UsageDisplay(Frame, Requester):
 		box.append((meta.total, meta))
 		print("Data total:", data.total)
 		box.append((data.total, data))
+		if freespace > 0:
+			box.append((free.total, free))
 
 		box.set_position(DF_BOX_PADDING, DF_BOX_PADDING,
 						 DF_BOX_WIDTH, DF_BOX_HEIGHT)
@@ -333,4 +342,5 @@ class UsageDisplay(Frame, Requester):
 			canvases[dev["id"]] = canvas
 			rv, text, obj = self.request(
 				"vol_df {0[uuid]} {1[id]}\n".format(self.fs, dev))
-			self.create_usage_box(canvas, obj["usage"].values())
+			self.create_usage_box(canvas, obj["usage"].values(),
+								  size=obj["size"])
