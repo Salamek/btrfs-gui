@@ -62,6 +62,8 @@ CHUNK_ITEM_KEY = 228
 STRING_ITEM_KEY = 253
 
 # ioctl structures
+ioctl_space_args = struct.Struct("=2Q")
+ioctl_space_info = struct.Struct("=3Q")
 ioctl_search_key = struct.Struct("=Q6QLLL4x32x")
 ioctl_search_header = struct.Struct("=3Q2L")
 

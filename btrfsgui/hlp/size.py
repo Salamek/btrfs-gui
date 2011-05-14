@@ -81,22 +81,26 @@ def df(params, state):
 	fsfd = mount.fd(uuid)
 
 	# Get the number of spaces we need to allocate for the result
-	ret = sized_array(16) # Space for two __u64s
+	ret = sized_array(btrfs.ioctl_space_args.size)
 	rv = fcntl.ioctl(fsfd, btrfs.IOC_SPACE_INFO, ret)
-	space_slots, total_spaces = struct.unpack("QQ", ret)
+	space_slots, total_spaces = btrfs.ioctl_space_args.unpack(ret)
 
 	# Now allocate it, and get the data
-	ret = array.array("B", [0] * (16 + 24*total_spaces))
-	struct.pack_into("QQ", ret, 0, total_spaces, 0)
+	buf_size = (btrfs.ioctl_space_args.size
+				+ total_spaces * btrfs.ioctl_space_info.size)
+	ret = sized_array(buf_size)
+	btrfs.ioctl_space_args.pack_into(ret, 0, total_spaces, 0)
 	rv = fcntl.ioctl(fsfd, btrfs.IOC_SPACE_INFO, ret)
 	fsfd.close()
 
 	# Parse the result
-	space_slots, total_spaces = struct.unpack_from("QQ", ret, 0)
+	space_slots, total_spaces = btrfs.ioctl_space_args.unpack_from(ret, 0)
 
 	res = []
-	for offset in xrange(16, 16 + 24 * total_spaces, 24):
-		flags, total, used = struct.unpack_from("QQQ", ret, offset)
+	for offset in xrange(btrfs.ioctl_space_args.size,
+						 buf_size,
+						 btrfs.ioctl_space_info.size):
+		flags, total, used = btrfs.ioctl_space_info.unpack_from(ret, offset)
 		res.append({"flags": flags, "total": total, "used": used})
 
 	sys.stdout.write(json.dumps(res))
