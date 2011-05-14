@@ -215,6 +215,11 @@ class UsageDisplay(Frame, Requester):
 		but.grid(row=2, column=1, sticky=W)
 		self.df_selection.set("alloc")
 
+		self.per_disk = LabelFrame(self, text="Volumes")
+		self.per_disk.grid(sticky=N+S+E+W, row=4, column=0,
+						   columnspan=len(COLOURS)+1)
+		Label(self.per_disk, text="Moo").grid()
+
 	def set_display(self, fs):
 		"""Pass parameters for the basic FS information so that we
 		know how to get the relevant information from the helper.
@@ -307,6 +312,25 @@ class UsageDisplay(Frame, Requester):
 			DF_BOX_PADDING+DF_BOX_WIDTH, DF_BOX_PADDING+DF_BOX_HEIGHT,
 			width=1, fill="#00ff00", tags=("all", "outline"))
 
+		children = self.per_disk.winfo_children()
+		for kid in children:
+			kid.destroy()
+
 		# Get the allocation and usage of all the block group types
 		rv, text, obj = self.request("df {0[uuid]}\n".format(self.fs))
 		self.create_usage_box(self.df_display, obj)
+
+		# Now set up a block for each disk, and populate it
+		canvases = {}
+		for dev in self.fs["vols"]:
+			frame = LabelFrame(self.per_disk,
+							   text=dev["path"])
+			frame.grid(sticky=E+W)
+			canvas = Canvas(frame,
+							width=DF_BOX_WIDTH+2*DF_BOX_PADDING,
+							height=DF_BOX_HEIGHT+2*DF_BOX_PADDING)
+			canvas.grid(sticky=N+S+E+W)
+			canvases[dev["id"]] = canvas
+			rv, text, obj = self.request(
+				"vol_df {0[uuid]} {1[id]}\n".format(self.fs, dev))
+			self.create_usage_box(canvas, obj["usage"].values())
