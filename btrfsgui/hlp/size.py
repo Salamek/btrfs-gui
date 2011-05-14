@@ -101,7 +101,7 @@ def df(params, state):
 						 buf_size,
 						 btrfs.ioctl_space_info.size):
 		flags, total, used = btrfs.ioctl_space_info.unpack_from(ret, offset)
-		res.append({"flags": flags, "total": total, "used": used})
+		res.append({"flags": flags, "size": total, "used": used})
 
 	sys.stdout.write(json.dumps(res))
 	sys.stdout.write("\n")
@@ -196,7 +196,7 @@ def volume_df(params, state):
 													  
 			if chunk_type not in res["usage"]:
 				res["usage"][chunk_type] = {
-					"type": chunk_type,
+					"flags": chunk_type,
 					"size": 0,
 					"used": 0,
 					}

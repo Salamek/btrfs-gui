@@ -260,7 +260,7 @@ class UsageDisplay(Frame, Requester):
 			usedfree = SplitBox(orient=SplitBox.HORIZONTAL)
 			usedfree.append((bg_type["used"],
 							 { "fill": COLOURS[typ][col] }))
-			usedfree.append((bg_type["total"]-bg_type["used"],
+			usedfree.append((bg_type["size"]-bg_type["used"],
 							 { "fill": COLOURS[typ][col], "stripe": fade(COLOURS[typ][col]) }))
 			destination.append((usedfree.total, usedfree))
 		
