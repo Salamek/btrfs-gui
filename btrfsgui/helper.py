@@ -65,4 +65,5 @@ COMMANDS = {
 	"open": open_fs,
 	"close": close_fs,
 	"df": hlp.size.df,
+	"vol_df": hlp.size.volume_df,
 	}
