@@ -222,20 +222,15 @@ class UsageDisplay(Frame, Requester):
 		self.fs = fs
 		self.update_display()
 
-	def update_display(self):
-		# Clean up the existing display
-		self.df_display.delete("all")
-		self.df_display.create_rectangle(
-			DF_BOX_PADDING-1, DF_BOX_PADDING-1,
-			DF_BOX_PADDING+DF_BOX_WIDTH, DF_BOX_PADDING+DF_BOX_HEIGHT,
-			width=1, fill="#00ff00", tags=("all", "outline"))
-
-		# Get the allocation and usage of all the block group types
-		rv, text, obj = self.request("df {0[uuid]}\n".format(self.fs))
+	def create_usage_box(self, canvas, input_data):
+		"""Analyse the individual chunks of input data, categorise the
+		space usage, and draw a usage box into the canvas. Data must
+		be an array of dictionaries, with keys 'flags', 'size' and
+		'used'."""
 		data = SplitBox(orient=SplitBox.VERTICAL)
 		meta = SplitBox(orient=SplitBox.VERTICAL)
 		sys = SplitBox(orient=SplitBox.VERTICAL)
-		for bg_type in obj:
+		for bg_type in input_data:
 			if bg_type["flags"] & BTRFS_BLOCK_GROUP_DATA:
 				destination = data
 				col = 0
@@ -283,7 +278,7 @@ class UsageDisplay(Frame, Requester):
 			ry1 = int(rect[1]+rect[3])
 			#print("Rectangle at", rect, rect[0]+rect[2], rx1, rect[1]+rect[3], ry1)
 
-			self.df_display.create_rectangle(
+			canvas.create_rectangle(
 				rx0, ry0, rx1, ry1,
 				width=0, tags=("all"), fill=data["fill"])
 			if "stripe" in data:
@@ -300,6 +295,18 @@ class UsageDisplay(Frame, Requester):
 						x1 += y1 - ry1
 						y1 = ry1
 
-					self.df_display.create_line(
+					canvas.create_line(
 						x0, y0, x1, y1,	fill=data["stripe"],
 						tags=("all", "stripes"))
+
+	def update_display(self):
+		# Clean up the existing display
+		self.df_display.delete("all")
+		self.df_display.create_rectangle(
+			DF_BOX_PADDING-1, DF_BOX_PADDING-1,
+			DF_BOX_PADDING+DF_BOX_WIDTH, DF_BOX_PADDING+DF_BOX_HEIGHT,
+			width=1, fill="#00ff00", tags=("all", "outline"))
+
+		# Get the allocation and usage of all the block group types
+		rv, text, obj = self.request("df {0[uuid]}\n".format(self.fs))
+		self.create_usage_box(self.df_display, obj)
