@@ -137,9 +137,6 @@ def volume_df(params, state):
 	res["uuid"] = btrfs.format_uuid(data[12])
 	res["usage"] = {}
 
-	devbuf = sized_array(4096)
-	extbuf = sized_array(4096)
-
 	# Now, collect data on the block group types in use
 	last_offset = 0
 	while True:
