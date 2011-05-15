@@ -11,7 +11,7 @@ import json
 import itertools
 
 import mount
-import btrfs as btrfs
+import btrfsgui.btrfs as btrfs
 import btrfsgui.helper
 
 def sized_array(count):
