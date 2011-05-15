@@ -41,7 +41,7 @@ class Application(Frame, Requester):
 
 		self.sidebar = PanedWindow(self.LRpane, orient=VERTICAL)
 		self.LRpane.add(self.sidebar)
-		self.datapane = Frame(self.LRpane)
+		self.datapane = Notebook(self.LRpane)
 		self.LRpane.add(self.datapane)
 
 		fs_frame = Frame(self.sidebar)
@@ -58,7 +58,7 @@ class Application(Frame, Requester):
 		self.fs_list.bind("<Double-Button-1>", self.select_fs)
 
 		self.usage = UsageDisplay(self.datapane, self.comms)
-		self.usage.grid(sticky=N+S+E+W)
+		self.datapane.add(self.usage, text="Space Usage", sticky="nsew")
 
 		self.create_menus(top)
 
@@ -91,9 +91,14 @@ class Application(Frame, Requester):
 		# The row ID is the UUID of the filesystem
 		for fs in self.filesystems:
 			if fs["uuid"] == rowid:
-				self.selected_fs = fs
-				self.usage.set_display(fs)
+				self.set_selected(fs)
 				break
+
+	def set_selected(self, fs):
+		self.selected_fs = fs
+		for w in self.datapane.tabs():
+			print(w)
+			self.nametowidget(w).set_selected(fs)
 
 	def scan(self):
 		rv, text, obj = self.request("scan\n")
@@ -117,8 +122,7 @@ class Application(Frame, Requester):
 					iid="{0}:{1}".format(fs["uuid"], vol["id"]),
 					text=vol["path"])
 
-		self.selected_fs = obj[0]
-		self.usage.set_display(obj[0])
+		self.set_selected(obj[0])
 
 	def quit_all(self):
 		self.request("quit\n")

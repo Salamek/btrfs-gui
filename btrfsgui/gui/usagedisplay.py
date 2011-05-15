@@ -198,13 +198,13 @@ class UsageDisplay(Frame, Requester):
 		but = Radiobutton(
 			box, text="Allocated only",
 			variable=self.df_selection,
-			command=self.update_display,
+			command=self.change_display,
 			value="alloc")
 		but.grid(row=1, column=1, sticky=W)
 		but = Radiobutton(
 			box, text="As raw space",
 			variable=self.df_selection,
-			command=self.update_display,
+			command=self.change_display,
 			value="raw")
 		but.grid(row=2, column=1, sticky=W)
 		self.df_selection.set("alloc")
@@ -213,11 +213,12 @@ class UsageDisplay(Frame, Requester):
 		self.per_disk.grid(sticky=N+S+E+W, row=4, column=0,
 						   columnspan=len(COLOURS)+1)
 
-	def set_display(self, fs):
+	def set_selected(self, fs):
 		"""Pass parameters for the basic FS information so that we
 		know how to get the relevant information from the helper.
 		"""
 		self.fs = fs
+		self.stale = True
 		self.update_display()
 
 	def create_usage_box(self, canvas, input_data, size=None, free=None):
@@ -301,7 +302,14 @@ class UsageDisplay(Frame, Requester):
 
 		return size
 
+	def change_display(self):
+		self.stale = True
+		self.update_display()
+
 	def update_display(self):
+		if not self.stale:
+			return
+
 		# Clean up the existing display
 		self.df_display.delete("all")
 		self.df_display.create_rectangle(
