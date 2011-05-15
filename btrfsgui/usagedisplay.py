@@ -5,6 +5,7 @@ from tkinter.ttk import *
 import collections
 
 from btrfsgui.requester import Requester
+import btrfsgui.btrfs as btrfs
 
 COLOURS = collections.OrderedDict(
 	[("Single", ("#ffff00", "#00ffff", "#000000")),
@@ -18,14 +19,6 @@ COLOUR_UNUSED = "#ffffff"
 DF_BOX_PADDING = 20
 DF_BOX_WIDTH = 400
 DF_BOX_HEIGHT = 50
-
-BTRFS_BLOCK_GROUP_DATA = 1 << 0
-BTRFS_BLOCK_GROUP_SYSTEM = 1 << 1
-BTRFS_BLOCK_GROUP_METADATA = 1 << 2
-BTRFS_BLOCK_GROUP_RAID0 = 1 << 3
-BTRFS_BLOCK_GROUP_RAID1 = 1 << 4
-BTRFS_BLOCK_GROUP_DUP = 1 << 5
-BTRFS_BLOCK_GROUP_RAID10 = 1 << 6
 
 def fade(col):
 	rgb = [int(col[1:3], 16), int(col[3:5], 16), int(col[5:7], 16)]
@@ -240,26 +233,17 @@ class UsageDisplay(Frame, Requester):
 		sys = SplitBox(orient=SplitBox.VERTICAL)
 		free = SplitBox(orient=SplitBox.VERTICAL)
 		for bg_type in input_data:
-			if bg_type["flags"] & BTRFS_BLOCK_GROUP_RAID0:
-				typ = "RAID0"
-			elif bg_type["flags"] & BTRFS_BLOCK_GROUP_RAID1:
-				typ = "RAID1"
-			elif bg_type["flags"] & BTRFS_BLOCK_GROUP_RAID10:
-				typ = "RAID10"
-			elif bg_type["flags"] & BTRFS_BLOCK_GROUP_DUP:
-				typ = "DUP"
-			else:
-				typ = "Single"
-
-			if bg_type["flags"] & BTRFS_BLOCK_GROUP_DATA:
+			repl = btrfs.replication_type(bg_type["flags"])
+			usage = btrfs.usage_type(bg_type["flags"])
+			if usage == "data":
 				destination = data
-				col = COLOURS[typ][0]
-			if bg_type["flags"] & BTRFS_BLOCK_GROUP_METADATA:
+				col = COLOURS[repl][0]
+			if usage == "meta":
 				destination = meta
-				col = COLOURS[typ][1]
-			if bg_type["flags"] & BTRFS_BLOCK_GROUP_SYSTEM:
+				col = COLOURS[repl][1]
+			if usage == "sys":
 				destination = sys
-				col = COLOURS[typ][2]
+				col = COLOURS[repl][2]
 
 			usedfree = SplitBox(orient=SplitBox.HORIZONTAL)
 			usedfree.append((bg_type["used"],

@@ -61,6 +61,15 @@ DEV_ITEM_KEY = 216
 CHUNK_ITEM_KEY = 228
 STRING_ITEM_KEY = 253
 
+# Block group flags
+BLOCK_GROUP_DATA = 1 << 0
+BLOCK_GROUP_SYSTEM = 1 << 1
+BLOCK_GROUP_METADATA = 1 << 2
+BLOCK_GROUP_RAID0 = 1 << 3
+BLOCK_GROUP_RAID1 = 1 << 4
+BLOCK_GROUP_DUP = 1 << 5
+BLOCK_GROUP_RAID10 = 1 << 6
+
 # ioctl structures
 ioctl_space_args = struct.Struct("=2Q")
 ioctl_space_info = struct.Struct("=3Q")
@@ -76,3 +85,27 @@ block_group_item = struct.Struct("<3Q")
 
 def format_uuid(id):
 	return "{0:02x}{1:02x}{2:02x}{3:02x}-{4:02x}{5:02x}-{6:02x}{7:02x}-{8:02x}{9:02x}-{10:02x}{11:02x}{12:02x}{13:02x}{14:02x}{15:02x}".format(*struct.unpack("16B", id))
+
+def replication_type(bgid):
+	if bgid & BLOCK_GROUP_RAID0:
+		return "RAID0"
+	elif bgid & BLOCK_GROUP_RAID1:
+		return "RAID1"
+	elif bgid & BLOCK_GROUP_RAID10:
+		return "RAID10"
+	elif bgid & BLOCK_GROUP_DUP:
+		return "DUP"
+	else:
+		return "Single"
+
+def usage_type(bgid):
+	if (bgid & BLOCK_GROUP_DATA) and (bgid & BLOCK_GROUP_METADATA):
+		return "mixed"
+	elif bgid & BLOCK_GROUP_DATA:
+		return "data"
+	elif bgid & BLOCK_GROUP_METADATA:
+		return "meta"
+	elif bgid & BLOCK_GROUP_SYSTEM:
+		return "sys"
+	else:
+		return ""
