@@ -198,14 +198,14 @@ class UsageDisplay(Frame, Requester):
 		but = Radiobutton(
 			box, text="Allocated only",
 			variable=self.df_selection,
+			command=self.update_display,
 			value="alloc")
-		but.bind("<ButtonRelease-1>", lambda e: self.update_display())
 		but.grid(row=1, column=1, sticky=W)
 		but = Radiobutton(
 			box, text="As raw space",
 			variable=self.df_selection,
+			command=self.update_display,
 			value="raw")
-		but.bind("<ButtonRelease-1>", lambda e: self.update_display())
 		but.grid(row=2, column=1, sticky=W)
 		self.df_selection.set("alloc")
 
@@ -221,20 +221,23 @@ class UsageDisplay(Frame, Requester):
 		self.fs = fs
 		self.update_display()
 
-	def create_usage_box(self, canvas, input_data, size=0):
+	def create_usage_box(self, canvas, input_data, size=None, free=None):
 		"""Analyse the individual chunks of input data, categorise the
 		space usage, and draw a usage box into the canvas. Data must
 		be an array of dictionaries, with keys 'flags', 'size' and
-		'used'."""
-		freespace = size
-
+		'used'. If a free space component is to be drawn, either
+		'size' or 'free' should be provided. If 'size' is set, the
+		amount of free space computed is returned; otherwise the
+		return value is arbitrary."""
 		data = SplitBox(orient=SplitBox.VERTICAL)
 		meta = SplitBox(orient=SplitBox.VERTICAL)
 		sys = SplitBox(orient=SplitBox.VERTICAL)
-		free = SplitBox(orient=SplitBox.VERTICAL)
+		freebox = SplitBox(orient=SplitBox.VERTICAL)
 		for bg_type in input_data:
 			repl = btrfs.replication_type(bg_type["flags"])
 			usage = btrfs.usage_type(bg_type["flags"])
+
+			print(usage)
 			if usage == "data":
 				destination = data
 				col = COLOURS[repl][0]
@@ -251,9 +254,13 @@ class UsageDisplay(Frame, Requester):
 			usedfree.append((bg_type["size"]-bg_type["used"],
 							 { "fill": col, "stripe": fade(col) }))
 			destination.append((usedfree.total, usedfree))
-			freespace -= bg_type["size"]
+			if size is not None:
+				size -= bg_type["size"]
 
-		free.append((freespace, { "fill": COLOUR_UNUSED }))
+		if size is not None:
+			freebox.append((size, { "fill": COLOUR_UNUSED }))
+		elif free is not None:
+			freebox.append((free, { "fill": COLOUR_UNUSED }))
 
 		# total is our whole block
 		# *_total are the three main divisions
@@ -264,8 +271,8 @@ class UsageDisplay(Frame, Requester):
 		box.append((meta.total, meta))
 		print("Data total:", data.total)
 		box.append((data.total, data))
-		if freespace > 0:
-			box.append((free.total, free))
+		if size is not None or free is not None:
+			box.append((freebox.total, freebox))
 
 		box.set_position(DF_BOX_PADDING, DF_BOX_PADDING,
 						 DF_BOX_WIDTH, DF_BOX_HEIGHT)
@@ -297,7 +304,11 @@ class UsageDisplay(Frame, Requester):
 						x0, y0, x1, y1,	fill=data["stripe"],
 						tags=("all", "stripes"))
 
+		return size
+
 	def update_display(self):
+		print("Selection was {0}".format(self.df_selection.get()))
+		
 		# Clean up the existing display
 		self.df_display.delete("all")
 		self.df_display.create_rectangle(
@@ -309,12 +320,9 @@ class UsageDisplay(Frame, Requester):
 		for kid in children:
 			kid.destroy()
 
-		# Get the allocation and usage of all the block group types
-		rv, text, obj = self.request("df {0[uuid]}\n".format(self.fs))
-		self.create_usage_box(self.df_display, obj)
-
 		# Now set up a block for each disk, and populate it
 		canvases = {}
+		raw_free = 0
 		for dev in self.fs["vols"]:
 			frame = LabelFrame(self.per_disk,
 							   text=dev["path"])
@@ -326,5 +334,12 @@ class UsageDisplay(Frame, Requester):
 			canvases[dev["id"]] = canvas
 			rv, text, obj = self.request(
 				"vol_df {0[uuid]} {1[id]}\n".format(self.fs, dev))
-			self.create_usage_box(canvas, obj["usage"].values(),
-								  size=obj["size"])
+			raw_free += self.create_usage_box(canvas, obj["usage"].values(),
+											  size=obj["size"])
+
+		# Get the allocation and usage of all the block group types
+		rv, text, obj = self.request("df {0[uuid]}\n".format(self.fs))
+		kwargs = {}
+		if self.df_selection.get() == "raw":
+			kwargs["free"] = raw_free
+		self.create_usage_box(self.df_display, obj, **kwargs)
