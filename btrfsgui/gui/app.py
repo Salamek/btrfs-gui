@@ -57,6 +57,12 @@ class Application(Frame, Requester):
 		self.sidebar.add(fs_frame)
 		self.fs_list.bind("<Double-Button-1>", self.select_fs)
 
+		self.images = { "fs": PhotoImage(file="img/fs_icon.gif"),
+						"fs-sel": PhotoImage(file="img/fs_icon_open.gif"),
+						"dev": PhotoImage(file="img/disk_icon.gif"), }
+		self.fs_list.tag_configure("fs", image=self.images["fs"])
+		self.fs_list.tag_configure("dev", image=self.images["dev"])
+
 		self.usage = UsageDisplay(self.datapane, self.comms)
 		self.datapane.add(self.usage, text="Space Usage", sticky="nsew")
 
@@ -92,12 +98,13 @@ class Application(Frame, Requester):
 		for fs in self.filesystems:
 			if fs["uuid"] == rowid:
 				self.set_selected(fs)
-				break
+				self.fs_list.item(fs["uuid"], image=self.images["fs-sel"])
+			else:
+				self.fs_list.item(fs["uuid"], image=self.images["fs"])
 
 	def set_selected(self, fs):
 		self.selected_fs = fs
 		for w in self.datapane.tabs():
-			print(w)
 			self.nametowidget(w).set_selected(fs)
 
 	def scan(self):
@@ -113,14 +120,18 @@ class Application(Frame, Requester):
 				"", "end",
 				iid=fs["uuid"],
 				text=lbl,
-				values=(fs["uuid"],))
+				values=(fs["uuid"],),
+				tags=["fs",],
+				image=self.images["fs"])
 
 			fs["vols"].sort(key=lambda x: x["path"])
 			for vol in fs["vols"]:
 				iid = self.fs_list.insert(
 					fs["uuid"], "end",
 					iid="{0}:{1}".format(fs["uuid"], vol["id"]),
-					text=vol["path"])
+					text=vol["path"],
+					tags=["dev",],
+					image=self.images["dev"])
 
 		self.set_selected(obj[0])
 
