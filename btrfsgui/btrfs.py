@@ -5,12 +5,12 @@
 
 import struct
 
-MINUS_ONE = 0xffffffffffffffffL
-MINUS_ONE_L = 0xffffffffL
+MINUS_ONE = 0xffffffffffffffff
+MINUS_ONE_L = 0xffffffff
 
 # ioctl numbers
-IOC_SPACE_INFO = 0xc0109414L
-IOC_TREE_SEARCH = 0xd0009411L
+IOC_SPACE_INFO = 0xc0109414
+IOC_TREE_SEARCH = 0xd0009411
 
 # Object IDs
 DEV_ITEMS_OBJECTID = 1
