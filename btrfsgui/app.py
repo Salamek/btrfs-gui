@@ -55,6 +55,7 @@ class Application(Frame, btrfsgui.requester.Requester):
 			columns=["", "UUID"])
 		self.fs_list.grid(sticky=N+S+E+W)
 		self.sidebar.add(fs_frame)
+		self.fs_list.bind("<Double-Button-1>", self.select_fs)
 
 		self.usage = btrfsgui.usagedisplay.UsageDisplay(
 			self.datapane, self.comms)
@@ -81,9 +82,26 @@ class Application(Frame, btrfsgui.requester.Requester):
 
 		self.main_menu.add_cascade(label="Filesystems", menu=self.file_menu)
 
+	def select_fs(self, event):
+		"""Select a filesystem by double-clicking on it, or any of its
+		devices
+		"""
+		rowid = self.fs_list.identify_row(event.y)
+		print("Row selected is " + str(rowid))
+		if rowid.find(":") != -1:
+			rowid = self.fs_list.parent(rowid)
+		print("Row selected is " + str(rowid))
+		# The row ID is the UUID of the filesystem
+		for fs in self.filesystems:
+			if fs["uuid"] == rowid:
+				self.selected_fs = fs
+				self.usage.set_display(fs)
+				break
+
 	def scan(self):
 		rv, text, obj = self.request("scan\n")
 		self.fs_list.set_children("")
+		self.filesystems = obj
 
 		for fs in obj:
 			lbl = fs["label"]
@@ -102,6 +120,7 @@ class Application(Frame, btrfsgui.requester.Requester):
 					iid="{0}:{1}".format(fs["uuid"], vol["id"]),
 					text=vol["path"])
 
+		self.selected_fs = obj[0]
 		self.usage.set_display(obj[0])
 
 	def quit_all(self):
