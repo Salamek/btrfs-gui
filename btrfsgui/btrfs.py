@@ -4,6 +4,9 @@
 """
 
 import struct
+import fcntl
+import array
+import itertools
 
 MINUS_ONE = 0xffffffffffffffff
 MINUS_ONE_L = 0xffffffff
@@ -109,3 +112,58 @@ def usage_type(bgid):
 		return "sys"
 	else:
 		return ""
+
+def sized_array(count):
+	return array.array("B", itertools.repeat(0, count))
+
+def search(fd, tree,
+		   objid, key_type, offset=[0, MINUS_ONE],
+		   transid=[0, MINUS_ONE], number=MINUS_ONE_L,
+		   structure=None, buf=None):
+	try:
+		min_objid, max_objid = objid
+	except TypeError:
+		min_objid = max_objid = objid
+	try:
+		min_type, max_type = key_type
+	except TypeError:
+		min_type = max_type = key_type
+	try:
+		min_offset, max_offset = offset
+	except TypeError:
+		min_offset = max_offset = offset
+	try:
+		min_transid, max_transid = transid
+	except TypeError:
+		min_transid = max_transid = transid
+
+	if buf is None:
+		buf = sized_array(4096)
+	ioctl_search_key.pack_into(
+		buf, 0,
+		tree, # Tree
+		min_objid, max_objid,		# ObjectID range
+		min_offset, max_offset,		# Offset range
+		min_transid, max_transid,	# TransID range
+		min_type, max_type,			# Key type range
+		number						# Number of items
+		)
+
+	rv = fcntl.ioctl(fd, IOC_TREE_SEARCH, buf)
+	results = ioctl_search_key.unpack_from(buf, 0)
+	num_items = results[9]
+	pos = ioctl_search_key.size
+	ret = []
+	while num_items > 0:
+		num_items =- 1
+		header = ioctl_search_header.unpack_from(buf, pos)
+		pos += ioctl_search_header.size
+		raw_data = buf[pos:pos+header[4]]
+		data = None
+		if structure is not None:
+			data = structure.unpack_from(buf, pos)
+
+		ret.append((header, raw_data, data))
+		pos += header[4]
+
+	return ret

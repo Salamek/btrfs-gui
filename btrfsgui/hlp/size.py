@@ -5,72 +5,11 @@
 
 import sys
 import fcntl
-import array
-import struct
 import json
-import itertools
 
 import mount
 import btrfsgui.btrfs as btrfs
 import btrfsgui.helper
-
-def sized_array(count):
-	return array.array("B", itertools.repeat(0, count))
-
-def search(fd, tree,
-		   objid, key_type, offset=[0, btrfs.MINUS_ONE],
-		   transid=[0, btrfs.MINUS_ONE], number=btrfs.MINUS_ONE_L,
-		   structure=None, buf=None):
-	try:
-		min_objid, max_objid = objid
-	except TypeError:
-		min_objid = max_objid = objid
-	try:
-		min_type, max_type = key_type
-	except TypeError:
-		min_type = max_type = key_type
-	try:
-		min_offset, max_offset = offset
-	except TypeError:
-		min_offset = max_offset = offset
-	try:
-		min_transid, max_transid = transid
-	except TypeError:
-		min_transid = max_transid = transid
-
-	if buf is None:
-		buf = sized_array(4096)
-	btrfs.ioctl_search_key.pack_into(
-		buf, 0,
-		tree, # Tree
-		min_objid, max_objid,		# ObjectID range
-		min_offset, max_offset,		# Offset range
-		min_transid, max_transid,	# TransID range
-		min_type, max_type,			# Key type range
-		number						# Number of items
-		)
-
-	rv = fcntl.ioctl(fd, btrfs.IOC_TREE_SEARCH, buf)
-	results = btrfs.ioctl_search_key.unpack_from(buf, 0)
-	num_items = results[9]
-	pos = btrfs.ioctl_search_key.size
-	ret = []
-	while num_items > 0:
-		num_items =- 1
-		header = btrfs.ioctl_search_header.unpack_from(buf, pos)
-		pos += btrfs.ioctl_search_header.size
-		raw_data = buf[pos:pos+header[4]]
-		data = None
-		if structure is not None:
-			data = structure.unpack_from(buf, pos)
-			#sys.stderr.write("Header claims length is {0}. Header length is {1}, structure length is {2}\n".format(header[4], btrfs.ioctl_search_header.size, structure.size))
-
-		#sys.stderr.write("Found key:\n  header {0}\n  data {1}\n".format(header, data))
-
-		ret.append((header, raw_data, data))
-		pos += header[4]
-
-	return ret
 
 def df(params, state):
 	"""Collect information on the usage of the filesystem. Replicate
@@ -81,14 +20,14 @@ def df(params, state):
 	fsfd = mount.fd(uuid)
 
 	# Get the number of spaces we need to allocate for the result
-	ret = sized_array(btrfs.ioctl_space_args.size)
+	ret = btrfs.sized_array(btrfs.ioctl_space_args.size)
 	rv = fcntl.ioctl(fsfd, btrfs.IOC_SPACE_INFO, ret)
 	space_slots, total_spaces = btrfs.ioctl_space_args.unpack(ret)
 
 	# Now allocate it, and get the data
 	buf_size = (btrfs.ioctl_space_args.size
 				+ total_spaces * btrfs.ioctl_space_info.size)
-	ret = sized_array(buf_size)
+	ret = btrfs.sized_array(buf_size)
 	btrfs.ioctl_space_args.pack_into(ret, 0, total_spaces, 0)
 	rv = fcntl.ioctl(fsfd, btrfs.IOC_SPACE_INFO, ret)
 	fsfd.close()
@@ -116,13 +55,13 @@ def volume_df(params, state):
 	fsfd = mount.fd(uuid)
 
 	# First, collect per-device data for this device
-	buf = sized_array(4096)
-	items = search(fsfd,
-				   btrfs.CHUNK_TREE_OBJECTID,
-				   btrfs.DEV_ITEMS_OBJECTID, btrfs.DEV_ITEM_KEY, devid,
-				   number=1,
-				   buf=buf,
-				   structure=btrfs.dev_item)
+	buf = btrfs.sized_array(4096)
+	items = btrfs.search(fsfd,
+						 btrfs.CHUNK_TREE_OBJECTID,
+						 btrfs.DEV_ITEMS_OBJECTID, btrfs.DEV_ITEM_KEY, devid,
+						 number=1,
+						 buf=buf,
+						 structure=btrfs.dev_item)
 
 	if len(items) > 1:
 		raise btrfsgui.helper.HelperException("More than one record for this devid!")
@@ -141,13 +80,13 @@ def volume_df(params, state):
 	last_offset = 0
 	while True:
 		# Iterate over all chunk extents on this device
-		items = search(fsfd,
-					   btrfs.DEV_TREE_OBJECTID,
-					   devid,
-					   btrfs.DEV_EXTENT_KEY,
-					   (last_offset, btrfs.MINUS_ONE),
-					   buf=buf,
-					   structure=btrfs.dev_extent)
+		items = btrfs.search(fsfd,
+							 btrfs.DEV_TREE_OBJECTID,
+							 devid,
+							 btrfs.DEV_EXTENT_KEY,
+							 (last_offset, btrfs.MINUS_ONE),
+							 buf=buf,
+							 structure=btrfs.dev_extent)
 		if not items:
 			break
 
@@ -163,12 +102,12 @@ def volume_df(params, state):
 
 			# For each extent on this device, we need to look up what
 			# it's a part of
-			chunks = search(fsfd,
-							btrfs.CHUNK_TREE_OBJECTID,
-							chunk_objid, btrfs.CHUNK_ITEM_KEY, chunk_offset,
-							buf=buf,
-							structure=btrfs.chunk,
-							number=1)
+			chunks = btrfs.search(fsfd,
+								  btrfs.CHUNK_TREE_OBJECTID,
+								  chunk_objid, btrfs.CHUNK_ITEM_KEY, chunk_offset,
+								  buf=buf,
+								  structure=btrfs.chunk,
+								  number=1)
 			if len(chunks) != 1:
 				raise btrfsgui.helper.HelperException("Wrong number of results from searching for a single chunk key ({0})".format(len(chunks)))
 			header, raw_data, chunk_info = chunks[0]
@@ -177,12 +116,12 @@ def volume_df(params, state):
 			chunk_type = chunk_info[3]
 
 			# Get the amount of space used in this block group, as well
-			extents = search(fsfd,
-							 btrfs.EXTENT_TREE_OBJECTID,
-							 chunk_offset, btrfs.BLOCK_GROUP_ITEM_KEY,
-							 buf=buf,
-							 structure=btrfs.block_group_item,
-							 number=1)
+			extents = btrfs.search(fsfd,
+								   btrfs.EXTENT_TREE_OBJECTID,
+								   chunk_offset, btrfs.BLOCK_GROUP_ITEM_KEY,
+								   buf=buf,
+								   structure=btrfs.block_group_item,
+								   number=1)
 			if len(extents) != 1:
 				raise btrfsgui.helper.HelperException("Wrong number of results from searching for a single extent key ({0})".format(len(extents)))
 			header, raw_data, extent_info = extents[0]
