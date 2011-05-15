@@ -86,10 +86,8 @@ class Application(Frame, Requester):
 		devices
 		"""
 		rowid = self.fs_list.identify_row(event.y)
-		print("Row selected is " + str(rowid))
 		if rowid.find(":") != -1:
 			rowid = self.fs_list.parent(rowid)
-		print("Row selected is " + str(rowid))
 		# The row ID is the UUID of the filesystem
 		for fs in self.filesystems:
 			if fs["uuid"] == rowid:

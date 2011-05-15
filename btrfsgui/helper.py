@@ -45,7 +45,6 @@ def main():
 			command = line.strip()
 			line = ""
 
-		sys.stderr.write("Helper: Read command '{0}', params '{1}'\n".format(command, line))
 		if command not in COMMANDS:
 			sys.stdout.write("ERR Command not known\n")
 		try:

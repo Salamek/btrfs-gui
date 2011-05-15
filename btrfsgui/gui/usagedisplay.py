@@ -212,7 +212,6 @@ class UsageDisplay(Frame, Requester):
 		self.per_disk = LabelFrame(self, text="Volumes")
 		self.per_disk.grid(sticky=N+S+E+W, row=4, column=0,
 						   columnspan=len(COLOURS)+1)
-		Label(self.per_disk, text="Moo").grid()
 
 	def set_display(self, fs):
 		"""Pass parameters for the basic FS information so that we
@@ -237,7 +236,6 @@ class UsageDisplay(Frame, Requester):
 			repl = btrfs.replication_type(bg_type["flags"])
 			usage = btrfs.usage_type(bg_type["flags"])
 
-			print(usage)
 			if usage == "data":
 				destination = data
 				col = COLOURS[repl][0]
@@ -265,11 +263,8 @@ class UsageDisplay(Frame, Requester):
 		# total is our whole block
 		# *_total are the three main divisions
 		box = SplitBox(orient=SplitBox.HORIZONTAL)
-		print("System total:", sys.total)
 		box.append((sys.total, sys))
-		print("Meta total:", meta.total)
 		box.append((meta.total, meta))
-		print("Data total:", data.total)
 		box.append((data.total, data))
 		if size is not None or free is not None:
 			box.append((freebox.total, freebox))
@@ -307,8 +302,6 @@ class UsageDisplay(Frame, Requester):
 		return size
 
 	def update_display(self):
-		print("Selection was {0}".format(self.df_selection.get()))
-		
 		# Clean up the existing display
 		self.df_display.delete("all")
 		self.df_display.create_rectangle(

@@ -65,7 +65,6 @@ def mount(uuid):
 	cmd = ["mount", "-t", "btrfs",
 		   "-o", "subvolid=0",
 		   "UUID={0}".format(uuid), dirpath]
-	sys.stderr.write(str(cmd) + "\n")
 	subprocess.check_call(cmd)
 	sys.stderr.write("Helper: Mounted filesystem UUID={0} at {1}\n".format(uuid, dirpath))
 
