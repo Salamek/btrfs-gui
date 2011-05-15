@@ -6,13 +6,13 @@
 from tkinter import *
 from tkinter.ttk import *
 
-import btrfsgui.usagedisplay
-import btrfsgui.requester
+from btrfsgui.gui.usagedisplay import UsageDisplay
+from btrfsgui.requester import Requester
 
-class Application(Frame, btrfsgui.requester.Requester):
+class Application(Frame, Requester):
 	def __init__(self, comms, options):
 		Frame.__init__(self, None)
-		btrfsgui.requester.Requester.__init__(self, comms)
+		Requester.__init__(self, comms)
 
 		self.options = options
 
@@ -57,8 +57,7 @@ class Application(Frame, btrfsgui.requester.Requester):
 		self.sidebar.add(fs_frame)
 		self.fs_list.bind("<Double-Button-1>", self.select_fs)
 
-		self.usage = btrfsgui.usagedisplay.UsageDisplay(
-			self.datapane, self.comms)
+		self.usage = UsageDisplay(self.datapane, self.comms)
 		self.usage.grid(sticky=N+S+E+W)
 
 		self.create_menus(top)

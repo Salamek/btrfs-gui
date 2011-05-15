@@ -3,7 +3,7 @@
 from optparse import OptionParser
 
 from btrfsgui.sudo import init_root_process
-from btrfsgui.app import Application
+from btrfsgui.gui import Application
 
 def main():
 	parser = OptionParser()
