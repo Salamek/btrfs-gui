@@ -12,19 +12,32 @@ import atexit
 
 _local_dir = None
 
-class _DirFDWrapper(object):
-	def __init__(self, fd):
-		self.fd = fd
+class Filesystem(object):
+	"""Context manager for opening a filesystem.
+	"""
+	class _DirFD(object):
+		def __init__(self, fd):
+			self.fd = fd
 
-	def close(self):
+		def __str__(self):
+			return str(self.fd)
+
+		def fileno(self):
+			return self.fd
+
+	def __init__(self, uuid):
+		self.uuid = uuid
+
+	def __enter__(self):
+		global _local_dir
+		mount(self.uuid)
+		self.fd = os.open(os.path.join(_local_dir, self.uuid), os.O_DIRECTORY)
+		return self._DirFD(self.fd)
+
+	def __exit__(self, exc_type, exc_value, traceback):
 		os.close(self.fd)
-
-	def fileno(self):
-		return self.fd
-
-def fd(uuid):
-	return _DirFDWrapper(
-		os.open(os.path.join(_local_dir, uuid), os.O_DIRECTORY))
+		# Return false to re-throw any exception in progress as we exit
+		return False
 
 @atexit.register
 def cleanup():
