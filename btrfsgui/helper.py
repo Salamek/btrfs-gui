@@ -5,6 +5,7 @@ import traceback
 
 import hlp.globalops
 import hlp.size
+import hlp.subvol
 
 class HelperState(object):
 	pass
@@ -65,4 +66,5 @@ COMMANDS = {
 	"close": close_fs,
 	"df": hlp.size.df,
 	"vol_df": hlp.size.volume_df,
+	"sub_list": hlp.subvol.sv_list,
 	}
