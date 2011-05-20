@@ -7,6 +7,7 @@ from tkinter import *
 from tkinter.ttk import *
 
 from btrfsgui.gui.usagedisplay import UsageDisplay
+from btrfsgui.gui.subvolumes import Subvolumes
 from btrfsgui.requester import Requester
 
 class Application(Frame, Requester):
@@ -65,6 +66,8 @@ class Application(Frame, Requester):
 
 		self.usage = UsageDisplay(self.datapane, self.comms)
 		self.datapane.add(self.usage, text="Space Usage", sticky="nsew")
+		self.subvols = Subvolumes(self.datapane, self.comms)
+		self.datapane.add(self.subvols, text="Subvolumes", sticky="nsew")
 
 		self.create_menus(top)
 
