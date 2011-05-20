@@ -112,7 +112,7 @@ class Application(Frame, Requester):
 
 	def scan(self):
 		rv, text, obj = self.request("scan\n")
-		self.fs_list.set_children("")
+		self.fs_list.delete(*self.fs_list.get_children())
 		self.filesystems = obj
 
 		for fs in obj:
