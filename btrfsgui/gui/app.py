@@ -73,6 +73,9 @@ class Application(Frame, Requester):
 
 		self.create_menus(top)
 
+		self.update_idletasks()
+		self.LRpane.sashpos(0, 150)
+
 	def create_menus(self, top):
 		# Set up the main menu
 		self.main_menu = Menu(top, tearoff=0)
