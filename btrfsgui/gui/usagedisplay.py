@@ -221,7 +221,8 @@ class UsageDisplay(Frame, Requester):
 		self.stale = True
 		self.update_display()
 
-	def create_usage_box(self, canvas, input_data, size=None, free=None):
+	def create_usage_box(self, canvas, input_data, size=None,
+						 free=None, max_size=None):
 		"""Analyse the individual chunks of input data, categorise the
 		space usage, and draw a usage box into the canvas. Data must
 		be an array of dictionaries, with keys 'flags', 'size' and
@@ -229,6 +230,13 @@ class UsageDisplay(Frame, Requester):
 		'size' or 'free' should be provided. If 'size' is set, the
 		amount of free space computed is returned; otherwise the
 		return value is arbitrary."""
+
+		# Calculate the overall width of the box we are going to draw
+		width = DF_BOX_WIDTH
+		if max_size is not None:
+			width = width * size / max_size
+
+		# Categorise the data
 		data = SplitBox(orient=SplitBox.VERTICAL)
 		meta = SplitBox(orient=SplitBox.VERTICAL)
 		sys = SplitBox(orient=SplitBox.VERTICAL)
@@ -271,7 +279,7 @@ class UsageDisplay(Frame, Requester):
 			box.append((freebox.total, freebox))
 
 		box.set_position(DF_BOX_PADDING, DF_BOX_PADDING,
-						 DF_BOX_WIDTH, DF_BOX_HEIGHT)
+						 width, DF_BOX_HEIGHT)
 		for rect, data in box:
 			rx0 = int(rect[0])
 			ry0 = int(rect[1])
@@ -324,7 +332,16 @@ class UsageDisplay(Frame, Requester):
 		# Now set up a block for each disk, and populate it
 		canvases = {}
 		raw_free = 0
+		max_space = 0
 		for dev in self.fs["vols"]:
+			rv, text, obj = self.request(
+				"vol_df {0[uuid]} {1[id]}\n".format(self.fs, dev))
+			dev["usage"] = obj
+			if obj["size"] > max_space:
+				max_space = obj["size"]
+
+		for dev in self.fs["vols"]:
+			obj = dev["usage"]
 			frame = LabelFrame(self.per_disk,
 							   text=dev["path"])
 			frame.grid(sticky=E+W)
@@ -333,10 +350,10 @@ class UsageDisplay(Frame, Requester):
 							height=DF_BOX_HEIGHT+2*DF_BOX_PADDING)
 			canvas.grid(sticky=N+S+E+W)
 			canvases[dev["id"]] = canvas
-			rv, text, obj = self.request(
-				"vol_df {0[uuid]} {1[id]}\n".format(self.fs, dev))
-			raw_free += self.create_usage_box(canvas, obj["usage"].values(),
-											  size=obj["size"])
+			raw_free += self.create_usage_box(canvas,
+											  obj["usage"].values(),
+											  size=obj["size"],
+											  max_size=max_space)
 
 		# Get the allocation and usage of all the block group types
 		rv, text, obj = self.request("df {0[uuid]}\n".format(self.fs))
