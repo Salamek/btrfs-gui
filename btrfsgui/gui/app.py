@@ -24,9 +24,6 @@ class Application(Frame, Requester):
 
 	def set_styles(self):
 		self.style = style = Style()
-		style.configure("Debug.TPanedwindow", background="#f00")
-		style.configure("Debug.TFrame", background="#0f0")
-		style.configure("Debug.TLabel", background="#ff0")
 
 	def create_widgets(self):
 		top = self.winfo_toplevel()
