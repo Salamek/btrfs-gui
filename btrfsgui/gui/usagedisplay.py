@@ -186,7 +186,7 @@ class UsageDisplay(Frame, Requester):
 		lbl.grid(column=len(COLOURS), row=2, sticky=N+S+W)
 
 		box = LabelFrame(self, text="Data replication and allocation")
-		box.grid(sticky=N+S+E+W, row=3, column=0, columnspan=len(COLOURS)+1)
+		box.grid(sticky=N+S+E+W, row=3, column=0, columnspan=len(COLOURS)+1, padx=8, pady=4)
 		box.columnconfigure(2, weight=1)
 		self.df_display = Canvas(box,
 								 width=DF_BOX_WIDTH+2*DF_BOX_PADDING,
@@ -211,7 +211,8 @@ class UsageDisplay(Frame, Requester):
 
 		self.per_disk = LabelFrame(self, text="Volumes")
 		self.per_disk.grid(sticky=N+S+E+W, row=4, column=0,
-						   columnspan=len(COLOURS)+1)
+						   columnspan=len(COLOURS)+1, padx=8, pady=4)
+		self.per_disk.columnconfigure(0, weight=1)
 
 	def set_selected(self, fs):
 		"""Pass parameters for the basic FS information so that we
@@ -344,7 +345,8 @@ class UsageDisplay(Frame, Requester):
 			obj = dev["usage"]
 			frame = LabelFrame(self.per_disk,
 							   text=dev["path"])
-			frame.grid(sticky=E+W)
+			frame.grid(sticky=E+W, padx=8, pady=4)
+			frame.columnconfigure(0, weight=1)
 			canvas = Canvas(frame,
 							width=DF_BOX_WIDTH+2*DF_BOX_PADDING,
 							height=DF_BOX_HEIGHT+2*DF_BOX_PADDING)
