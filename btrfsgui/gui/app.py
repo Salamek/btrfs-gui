@@ -54,6 +54,8 @@ class Application(Frame, Requester):
 		self.fs_list = Treeview(
 			fs_frame,
 			columns=["", "UUID"])
+		self.fs_list.heading("#0", text="Filesystem", anchor="w")
+		self.fs_list.heading("UUID", text="UUID", anchor="w")
 		self.fs_list.grid(sticky=N+S+E+W)
 		self.sidebar.add(fs_frame)
 		self.fs_list.bind("<Double-Button-1>", self.select_fs)
