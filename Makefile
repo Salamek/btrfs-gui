@@ -34,13 +34,16 @@ install:
 # tarball to get the images.
 icons: $(ICON_FILES)
 
+ICONS_WEB := http://carfax.org.uk/sites/default/files
 img/%.png: img/icons.svg
 	@inkscape --export-png=$@ --export-id-only --export-id=$* \
 		--export-background-opacity=0.0 --export-height=16 \
-		--export-width=16 $<
+		--export-width=16 $< || \
+	wget $(ICONS_WEB)/$*.png -O $@
 
 img/%.gif: img/%.png
-	@convert $< $@
+	@convert $< $@ || \
+	wget $(ICONS_WEB)/$*.gif -O $@
 
 # Work out a version string: get the latest tag from git. If that
 # doesn't match the current revision number, append the revision
