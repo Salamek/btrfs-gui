@@ -4,7 +4,7 @@
 ICONS := disk_icon fs_icon fs_icon_open
 ICON_FILES := $(foreach icon,$(ICONS),img/$(icon).gif)
 PY_LIB_FILES := $(shell find btrfsgui -name \*.py)
-DOC_FILES := README
+DOC_FILES := README LICENCE
 SUPPORT_FILES := Makefile
 
 DIST_FILES = btrfs-gui btrfs-gui-helper $(DOC_FILES) $(SUPPORT_FILES) \

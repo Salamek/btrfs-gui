@@ -9,9 +9,13 @@ The application requires the use of python 3.x for the GUI, and can
 run the root-level helper using python 2.x (python 3.x version coming
 shortly).
 
+More information, and the latest version, can be found from the
+project's web pages at http://carfax.org.uk/btrfs-gui/
+
 Copyright and Licensing
 =======================
 
 Coypright ©2011 HRMills <hugo@carfax.org.uk>
 
 This software is licensed under the terms of the GPL, version 3 only.
+See the file LICENCE for more details.
