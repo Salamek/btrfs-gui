@@ -9,6 +9,7 @@ import array
 import struct
 import json
 import itertools
+import os.path
 
 from mount import Filesystem
 import btrfsgui.btrfs as btrfs
@@ -19,7 +20,7 @@ def local_path(fs, tree, inode):
 	the given inode number in the given FS tree.
 	"""
 	rv = []
-	buf = btrfs.sized_array(4096)
+	buf = btrfs.sized_array()
 	while inode != 256:
 		items = btrfs.search(fs,
 							 tree,
@@ -41,7 +42,7 @@ def local_path(fs, tree, inode):
 	rv.reverse()
 	return rv
 
-def sv_list(params, state):
+def sv_list(params):
 	"""List all the subvolumes on the filesystem.
 	"""
 	uuid = params.split()[0]
@@ -50,7 +51,7 @@ def sv_list(params, state):
 		# Find all trees in the tree of tree roots
 		min_tree = btrfs.FIRST_FREE_OBJECTID
 		min_key = 0
-		buf = btrfs.sized_array(4096)
+		buf = btrfs.sized_array()
 		while True:
 			items = btrfs.search(fsfd,
 								 btrfs.ROOT_TREE_OBJECTID,
@@ -100,3 +101,39 @@ def sv_list(params, state):
 
 	sys.stdout.write(json.dumps(res))
 	sys.stdout.write("\n")
+
+def sv_del(params):
+	"""Delete a subvolume, by ID.
+	"""
+	uuid, sv_path = params.split(None, 1)
+	with Filesystem(uuid) as fs:
+		# We don't use the fs object as a file descriptor here, but
+		# just as a place to open subdirs from
+		where = os.path.dirname(sv_path)
+		fd = fs.open(where)
+		subv_name = os.path.basename(sv_path)
+
+		buf = btrfs.sized_array()
+		# pack_into fills any unused space with zero bytes. Since
+		# we're selecting PATH_NAME_MAX bytes, there's always at least
+		# one byte remaining for a zero terminator
+
+		# FIXME: throw an error if len(subv_name) >
+		# btrfs.PATH_NAME_MAX, because it'll do Bad Things.
+		btrfs.ioctl_vol_args.pack_into(buf, 0,
+									   0, subv_name[:btrfs.PATH_NAME_MAX])
+		fcntl.ioctl(fd, btrfs.IOC_SNAP_DESTROY, buf)
+
+def sv_make(params):
+	"""Create a subvolume
+	"""
+	uuid, sv_path = params.split(None, 1)
+	with Filesystem(uuid) as fs:
+		where = os.path.dirname(sv_path)
+		fd = fs.open(where)
+		subv_name = os.path.basename(sv_path)
+
+		buf = btrfs.sized_array()
+		btrfs.ioctl_vol_args.pack_into(buf, 0,
+									   0, subv_name[:btrfs.PATH_NAME_MAX])
+		fcntl.ioctl(fd, btrfs.IOC_SUBVOL_CREATE, buf)

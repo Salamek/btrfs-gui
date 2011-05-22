@@ -11,7 +11,7 @@ from mount import Filesystem
 import btrfsgui.btrfs as btrfs
 import btrfsgui.helper
 
-def df(params, state):
+def df(params):
 	"""Collect information on the usage of the filesystem. Replicate
 	the operation of btrfs fi df to start with.
 	"""
@@ -42,7 +42,7 @@ def df(params, state):
 	sys.stdout.write(json.dumps(res))
 	sys.stdout.write("\n")
 
-def volume_df(params, state):
+def volume_df(params):
 	"""Collect usage statistics on a specific volume in the filesystem.
 	"""
 	uuid, devid = params.split()
@@ -50,7 +50,7 @@ def volume_df(params, state):
 
 	with Filesystem(uuid) as fsfd:
 		# First, collect per-device data for this device
-		buf = btrfs.sized_array(4096)
+		buf = btrfs.sized_array()
 		items = btrfs.search(fsfd,
 							 btrfs.CHUNK_TREE_OBJECTID,
 							 btrfs.DEV_ITEMS_OBJECTID, btrfs.DEV_ITEM_KEY, devid,
