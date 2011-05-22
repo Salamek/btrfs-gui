@@ -35,10 +35,13 @@ class Subvolumes(Frame, Requester):
 		self.bind_all("<Control-KeyPress-n>", lambda e: self.create_subvolume())
 
 	def create_widgets(self):
-		self.sv_list = Treeview(self, columns=["id", "path"])
-		self.sv_list.heading("#0", text="name", anchor="w")
+		self.columnconfigure(0, weight=1)
+		self.rowconfigure(0, weight=1)
+
+		self.sv_list = Treeview(self, columns=["name", "id"])
+		self.sv_list.heading("#0", text="path", anchor="w")
 		self.sv_list.heading("id", text="id", anchor="w")
-		self.sv_list.heading("path", text="path", anchor="w")
+		self.sv_list.heading("name", text="name", anchor="w")
 		self.sv_list.grid(sticky=N+S+W+E)
 
 		self.ctx_menu = Menu(self, tearoff=False)
@@ -108,12 +111,13 @@ class Subvolumes(Frame, Requester):
 
 		self.sv_list.insert("", "end", text="@", iid="@", values=["0", ""], open=True)
 		for subv in sorted(self.subvols.values(), key=lambda x: len(x["full_path"])):
+			path = os.path.join(*(subv["full_path"] + [subv["name"]]))
 			self.sv_list.insert(
 				"@",
 				"end",
-				text=subv["name"],
+				text=path,
 				iid=subv["id"],
-				values=[subv["id"], os.path.join(*(subv["full_path"] + [subv["name"]]))],
+				values=[subv["name"], subv["id"]],
 				open=True)
 
 
@@ -156,7 +160,7 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 		self.name = StringVar()
 		Entry(master, textvariable=self.name)\
 					  .grid(row=1, column=1, padx=8, pady=8)
-		
+
 		self.bind("<Return>", self.ok)
 		self.bind("<Escape>", self.cancel)
 
