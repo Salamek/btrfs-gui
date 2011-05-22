@@ -40,7 +40,6 @@ def ls(params):
 	with Filesystem(uuid) as fs:
 		path = fs.fullpath(path)
 		for name in os.listdir(path):
-			sys.stderr.write("Helper: processing {0}\n".format(name))
 			stats = os.stat(os.path.join(path, name))
 			if not typefilter(stats.st_mode):
 				continue
