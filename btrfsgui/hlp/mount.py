@@ -16,8 +16,9 @@ class Filesystem(object):
 	"""Context manager for opening a filesystem.
 	"""
 	class _DirFD(object):
-		def __init__(self, fd):
-			self.fd = fd
+		def __init__(self, manager):
+			self.manager = manager
+			self.fd = manager.fd
 
 		def __str__(self):
 			return str(self.fd)
@@ -25,17 +26,29 @@ class Filesystem(object):
 		def fileno(self):
 			return self.fd
 
+		def open(self, dir):
+			"""Return and maintain a file descriptor for a path within
+			this filesystem.
+			"""
+			fd = os.open(os.path.join(_local_dir, self.manager.uuid, dir),
+						 os.O_DIRECTORY)
+			self.manager.fds.append(fd)
+			return fd
+
 	def __init__(self, uuid):
 		self.uuid = uuid
+		self.fds = []
 
 	def __enter__(self):
 		global _local_dir
 		mount(self.uuid)
 		self.fd = os.open(os.path.join(_local_dir, self.uuid), os.O_DIRECTORY)
-		return self._DirFD(self.fd)
+		return self._DirFD(self)
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		os.close(self.fd)
+		for fd in self.fds:
+			os.close(fd)
 		# Return false to re-throw any exception in progress as we exit
 		return False
 
