@@ -35,6 +35,12 @@ class Filesystem(object):
 			self.manager.fds.append(fd)
 			return fd
 
+		def fullpath(self, path):
+			"""Return a full local filesystem path to the given object
+			in this filesystem
+			"""
+			return os.path.join(_local_dir, self.manager.uuid, path)
+
 	def __init__(self, uuid):
 		self.uuid = uuid
 		self.fds = []

@@ -4,6 +4,7 @@ import sys
 import traceback
 
 import hlp.globalops
+import hlp.vfs
 import hlp.size
 import hlp.subvol
 
@@ -50,4 +51,5 @@ COMMANDS = {
 	"vol_df": hlp.size.volume_df,
 	"sub_list": hlp.subvol.sv_list,
 	"sub_del": hlp.subvol.sv_del,
+	"ls": hlp.vfs.ls,
 	}
