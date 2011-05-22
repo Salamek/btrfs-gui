@@ -92,6 +92,13 @@ class Application(Frame, Requester):
 
 		self.main_menu.add_cascade(label="Filesystems", menu=self.file_menu)
 
+		# Top-level menus provided by the various tab objects
+		for w in self.datapane.tabs():
+			try:
+				self.nametowidget(w).create_top_menus(self.main_menu)
+			except AttributeError:
+				pass
+
 	def select_fs(self, event):
 		"""Select a filesystem by double-clicking on it, or any of its
 		devices
