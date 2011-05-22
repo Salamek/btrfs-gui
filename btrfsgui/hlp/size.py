@@ -11,7 +11,7 @@ from mount import Filesystem
 import btrfsgui.btrfs as btrfs
 import btrfsgui.helper
 
-def df(params, state):
+def df(params):
 	"""Collect information on the usage of the filesystem. Replicate
 	the operation of btrfs fi df to start with.
 	"""
@@ -42,7 +42,7 @@ def df(params, state):
 	sys.stdout.write(json.dumps(res))
 	sys.stdout.write("\n")
 
-def volume_df(params, state):
+def volume_df(params):
 	"""Collect usage statistics on a specific volume in the filesystem.
 	"""
 	uuid, devid = params.split()

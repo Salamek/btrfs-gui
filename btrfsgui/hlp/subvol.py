@@ -42,7 +42,7 @@ def local_path(fs, tree, inode):
 	rv.reverse()
 	return rv
 
-def sv_list(params, state):
+def sv_list(params):
 	"""List all the subvolumes on the filesystem.
 	"""
 	uuid = params.split()[0]
@@ -102,7 +102,7 @@ def sv_list(params, state):
 	sys.stdout.write(json.dumps(res))
 	sys.stdout.write("\n")
 
-def sv_del(params, state):
+def sv_del(params):
 	"""Delete a subvolume, by ID.
 	"""
 	uuid, sv_path = params.split(None, 1)
