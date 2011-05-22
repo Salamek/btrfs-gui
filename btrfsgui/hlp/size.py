@@ -50,7 +50,7 @@ def volume_df(params, state):
 
 	with Filesystem(uuid) as fsfd:
 		# First, collect per-device data for this device
-		buf = btrfs.sized_array(4096)
+		buf = btrfs.sized_array()
 		items = btrfs.search(fsfd,
 							 btrfs.CHUNK_TREE_OBJECTID,
 							 btrfs.DEV_ITEMS_OBJECTID, btrfs.DEV_ITEM_KEY, devid,

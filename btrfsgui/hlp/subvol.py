@@ -19,7 +19,7 @@ def local_path(fs, tree, inode):
 	the given inode number in the given FS tree.
 	"""
 	rv = []
-	buf = btrfs.sized_array(4096)
+	buf = btrfs.sized_array()
 	while inode != 256:
 		items = btrfs.search(fs,
 							 tree,
@@ -50,7 +50,7 @@ def sv_list(params, state):
 		# Find all trees in the tree of tree roots
 		min_tree = btrfs.FIRST_FREE_OBJECTID
 		min_key = 0
-		buf = btrfs.sized_array(4096)
+		buf = btrfs.sized_array()
 		while True:
 			items = btrfs.search(fsfd,
 								 btrfs.ROOT_TREE_OBJECTID,

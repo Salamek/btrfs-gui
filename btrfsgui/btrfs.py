@@ -116,7 +116,7 @@ def usage_type(bgid):
 	else:
 		return ""
 
-def sized_array(count):
+def sized_array(count=4096):
 	return array.array("B", itertools.repeat(0, count))
 
 def search(fd, tree,
@@ -141,7 +141,7 @@ def search(fd, tree,
 		min_transid = max_transid = transid
 
 	if buf is None:
-		buf = sized_array(4096)
+		buf = sized_array()
 	ioctl_search_key.pack_into(
 		buf, 0,
 		tree, # Tree
