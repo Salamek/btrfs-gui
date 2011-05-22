@@ -83,8 +83,7 @@ class Subvolumes(Frame, Requester):
 			default=tkinter.messagebox.CANCEL,
 			icon=tkinter.messagebox.WARNING)
 		if ok:
-			rv, text, obj = self.request("sub_del {0[uuid]} {1}\n"
-										 .format(self.fs, vol_path))
+			rv, text, obj = self.request("sub_del", self.fs["uuid"], vol_path)
 			self.change_display()
 
 	def set_selected(self, fs):
@@ -107,7 +106,7 @@ class Subvolumes(Frame, Requester):
 		self.sv_list.delete(*self.sv_list.get_children())
 
 		# Get the list of subvolumes, and populate the display
-		rv, text, self.subvols = self.request("sub_list {0[uuid]}\n".format(self.fs))
+		rv, text, self.subvols = self.request("sub_list", self.fs["uuid"])
 
 		self.sv_list.insert("", "end", text="@", iid="@", values=["0", ""], open=True)
 		for subv in sorted(self.subvols.values(), key=lambda x: len(x["full_path"])):
@@ -135,8 +134,9 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 		"""
 		item = self.file_list.focus()
 		path = self.file_list.set(item, "path")
-		rv, msg, data = self.parent.request("sub_make {0} {1}\n".format(
-			self.uuid, os.path.join(path, self.name.get())))
+		rv, msg, data = self.parent.request("sub_make",
+											self.uuid,
+											os.path.join(path, self.name.get()))
 		if int(rv) == 200:
 			self.result = True
 
@@ -185,7 +185,9 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 		"""Populate the tree node at parentid with the contents of the
 		directory dirname
 		"""
-		ret, text, data = self.parent.request_array("ls -dir {0} {1}\n".format(self.uuid, dirname))
+		ret, text, data = self.parent.request_array("ls", "-dir",
+													self.uuid,
+													dirname)
 		if dirname == ".":
 			dirname = ""
 		self.file_list.set_children(parentid)

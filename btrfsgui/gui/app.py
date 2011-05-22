@@ -120,7 +120,7 @@ class Application(Frame, Requester):
 			self.nametowidget(w).set_selected(fs)
 
 	def scan(self):
-		rv, text, obj = self.request("scan\n")
+		rv, text, obj = self.request("scan")
 		self.fs_list.delete(*self.fs_list.get_children())
 		self.filesystems = obj
 
@@ -148,5 +148,5 @@ class Application(Frame, Requester):
 		self.set_selected(obj[0])
 
 	def quit_all(self):
-		self.request("quit\n")
+		self.request("quit")
 		self.quit()

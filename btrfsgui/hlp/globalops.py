@@ -9,7 +9,7 @@ import sys
 
 import btrfsgui.helper
 
-def scan(line):
+def scan(parameters):
 	devnull = open("/dev/null", "w")
 	scanner = subprocess.call(["btrfs", "device", "scan"],
 							  stderr=subprocess.STDOUT, stdout=devnull)

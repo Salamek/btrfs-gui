@@ -25,11 +25,11 @@ def ls(params):
 	
 	Pass . as the path to obtain the root dir listing.
 	"""
-	if params[0] == '-':
-		p, uuid, path = params.split(None, 2)
+	if len(params) == 3:
+		p, uuid, path = params
 		typefilter = _filters[p[1:]]
 	else:
-		uuid, path = params.split(None, 1)
+		uuid, path = params
 		typefilter = _filters["all"]
 
 	# If we don't do this, we get to be able to list the whole host's

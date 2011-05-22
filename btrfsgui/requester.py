@@ -14,13 +14,17 @@ class Requester(object):
 	def __init__(self, comms):
 		self.comms = comms
 
-	def request(self, req):
+	def request(self, *parts):
 		"""Send a request, parse the result stream in file object f,
 		and return the data correctly.
 		"""
 		ret = None
 
+		req = " ".join([str(p).replace("\\", "\\\\").replace(" ", "\\ ")
+						for p in parts])
+
 		self.comms.stdin.write(req)
+		self.comms.stdin.write("\n")
 		self.comms.stdin.flush()
 
 		while True:
@@ -34,11 +38,15 @@ class Requester(object):
 				return (599, "Unparsable data", None)
 		return (rv, message, ret)
 
-	def request_array(self, req):
+	def request_array(self, *parts):
 		"""Send a requrest, parse repeated lines of output in file
 		object f, and return the data correctly.
 		"""
+		req = " ".join([str(p).replace("\\", "\\\\").replace(" ", "\\ ")
+						for p in parts])
+
 		self.comms.stdin.write(req)
+		self.comms.stdin.write("\n")
 		self.comms.stdin.flush()
 
 		def ret():

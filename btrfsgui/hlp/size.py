@@ -15,7 +15,7 @@ def df(params):
 	"""Collect information on the usage of the filesystem. Replicate
 	the operation of btrfs fi df to start with.
 	"""
-	uuid = params.split()[0]
+	uuid = params[0]
 	with Filesystem(uuid) as fsfd:
 		# Get the number of spaces we need to allocate for the result
 		ret = btrfs.sized_array(btrfs.ioctl_space_args.size)
@@ -45,7 +45,7 @@ def df(params):
 def volume_df(params):
 	"""Collect usage statistics on a specific volume in the filesystem.
 	"""
-	uuid, devid = params.split()
+	uuid, devid = params
 	devid = int(devid)
 
 	with Filesystem(uuid) as fsfd:

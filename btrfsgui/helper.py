@@ -13,7 +13,7 @@ class HelperException(Exception):
 		self.message = msg
 		self.rv = value
 
-def quit_all(line):
+def quit_all(params):
 	sys.exit(0)
 
 def main():
@@ -25,16 +25,13 @@ def main():
 		line = line[:-1] # Chop off the trailing \n
 		if line == "":
 			break
-		try:
-			command, line = line.split(None, 1)
-		except ValueError:
-			command = line.strip()
-			line = ""
+		parameters = parse(line)
+		command = parameters.pop(0)
 
 		if command not in COMMANDS:
 			sys.stdout.write("ERR Command not known\n")
 		try:
-			COMMANDS[command](line)
+			COMMANDS[command](parameters)
 			sys.stdout.write("OK 200 All good\n")
 		except HelperException, ex:
 			sys.stdout.write("ERR {0.rv} {0.message}\n".format(ex))
@@ -43,6 +40,29 @@ def main():
 			sys.stdout.write("ERR 550 {0}\n".format(ex))
 			traceback.print_exc(None, sys.stderr)
 		sys.stdout.flush()
+
+def parse(line):
+	"""Parse a line of input into tokens. Tokens are separated by
+	spaces.	Characters may be escaped by \
+	"""
+	state = "space"
+	output = []
+	it = iter(line)
+	for c in it:
+		if state == "read":
+			if c == " ":
+				state = "space"
+				continue
+			elif c == "\\":
+				c = it.next()
+			output[-1] += c
+		elif state == "space":
+			if c != " ":
+				state = "read"
+				if c == "\\":
+					c = it.next()
+				output.append(c)
+	return output
 
 COMMANDS = {
 	"quit": quit_all,

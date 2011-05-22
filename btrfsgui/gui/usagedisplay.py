@@ -335,8 +335,7 @@ class UsageDisplay(Frame, Requester):
 		raw_free = 0
 		max_space = 0
 		for dev in self.fs["vols"]:
-			rv, text, obj = self.request(
-				"vol_df {0[uuid]} {1[id]}\n".format(self.fs, dev))
+			rv, text, obj = self.request("vol_df", self.fs["uuid"], dev["id"])
 			dev["usage"] = obj
 			if obj["size"] > max_space:
 				max_space = obj["size"]
@@ -358,7 +357,7 @@ class UsageDisplay(Frame, Requester):
 											  max_size=max_space)
 
 		# Get the allocation and usage of all the block group types
-		rv, text, obj = self.request("df {0[uuid]}\n".format(self.fs))
+		rv, text, obj = self.request("df", self.fs["uuid"])
 		kwargs = {}
 		if self.df_selection.get() == "raw":
 			kwargs["free"] = raw_free

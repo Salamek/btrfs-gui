@@ -45,7 +45,7 @@ def local_path(fs, tree, inode):
 def sv_list(params):
 	"""List all the subvolumes on the filesystem.
 	"""
-	uuid = params.split()[0]
+	uuid = params[0]
 	res = {}
 	with Filesystem(uuid) as fsfd:
 		# Find all trees in the tree of tree roots
@@ -59,7 +59,6 @@ def sv_list(params):
 								 (min_key, 255),
 								 buf=buf,
 								 structure=btrfs.root_ref)
-
 			if not items:
 				break
 			while items:
@@ -105,7 +104,7 @@ def sv_list(params):
 def sv_del(params):
 	"""Delete a subvolume, by ID.
 	"""
-	uuid, sv_path = params.split(None, 1)
+	uuid, sv_path = params
 	with Filesystem(uuid) as fs:
 		# We don't use the fs object as a file descriptor here, but
 		# just as a place to open subdirs from
@@ -127,7 +126,7 @@ def sv_del(params):
 def sv_make(params):
 	"""Create a subvolume
 	"""
-	uuid, sv_path = params.split(None, 1)
+	uuid, sv_path = params
 	with Filesystem(uuid) as fs:
 		where = os.path.dirname(sv_path)
 		fd = fs.open(where)
