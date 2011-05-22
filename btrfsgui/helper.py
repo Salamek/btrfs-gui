@@ -67,4 +67,5 @@ COMMANDS = {
 	"df": hlp.size.df,
 	"vol_df": hlp.size.volume_df,
 	"sub_list": hlp.subvol.sv_list,
+	"sub_del": hlp.subvol.sv_del,
 	}

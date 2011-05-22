@@ -12,8 +12,9 @@ MINUS_ONE = 0xffffffffffffffff
 MINUS_ONE_L = 0xffffffff
 
 # ioctl numbers
-IOC_SPACE_INFO = 0xc0109414
+IOC_SNAP_DESTROY = 0x5000940f
 IOC_TREE_SEARCH = 0xd0009411
+IOC_SPACE_INFO = 0xc0109414
 
 # Object IDs
 ROOT_TREE_OBJECTID = 1
@@ -79,6 +80,8 @@ ioctl_space_args = struct.Struct("=2Q")
 ioctl_space_info = struct.Struct("=3Q")
 ioctl_search_key = struct.Struct("=Q6QLLL4x32x")
 ioctl_search_header = struct.Struct("=3Q2L")
+PATH_NAME_MAX=4087
+ioctl_vol_args = struct.Struct("=q4088s")
 
 # Internal data structures
 dev_item = struct.Struct("<3Q3L3QL2B16s16s")

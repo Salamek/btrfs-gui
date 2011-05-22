@@ -9,6 +9,7 @@ import array
 import struct
 import json
 import itertools
+import os.path
 
 from mount import Filesystem
 import btrfsgui.btrfs as btrfs
@@ -99,4 +100,29 @@ def sv_list(params, state):
 				parent_id = res[parent_id]["parent"]
 
 	sys.stdout.write(json.dumps(res))
+	sys.stdout.write("\n")
+
+def sv_del(params, state):
+	"""Delete a subvolume, by ID.
+	"""
+	uuid, sv_path = params.split(None, 1)
+	with Filesystem(uuid) as fs:
+		# We don't use the fs object as a file descriptor here, but
+		# just as a place to open subdirs from
+		where = os.path.dirname(sv_path)
+		fd = fs.open(where)
+		subv_name = os.path.basename(sv_path)
+
+		buf = btrfs.sized_array()
+		# pack_into fills any unused space with zero bytes. Since
+		# we're selecting PATH_NAME_MAX bytes, there's always at least
+		# one byte remaining for a zero terminator
+
+		# FIXME: throw an error if len(subv_name) >
+		# btrfs.PATH_NAME_MAX, because it'll do Bad Things.
+		btrfs.ioctl_vol_args.pack_into(buf, 0,
+									   0, subv_name[:btrfs.PATH_NAME_MAX])
+		fcntl.ioctl(fd, btrfs.IOC_SNAP_DESTROY, buf)
+
+	sys.stdout.write(json.dumps(""))
 	sys.stdout.write("\n")
