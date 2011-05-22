@@ -124,5 +124,16 @@ def sv_del(params):
 									   0, subv_name[:btrfs.PATH_NAME_MAX])
 		fcntl.ioctl(fd, btrfs.IOC_SNAP_DESTROY, buf)
 
-	sys.stdout.write(json.dumps(""))
-	sys.stdout.write("\n")
+def sv_make(params):
+	"""Create a subvolume
+	"""
+	uuid, sv_path = params.split(None, 1)
+	with Filesystem(uuid) as fs:
+		where = os.path.dirname(sv_path)
+		fd = fs.open(where)
+		subv_name = os.path.basename(sv_path)
+
+		buf = btrfs.sized_array()
+		btrfs.ioctl_vol_args.pack_into(buf, 0,
+									   0, subv_name[:btrfs.PATH_NAME_MAX])
+		fcntl.ioctl(fd, btrfs.IOC_SUBVOL_CREATE, buf)

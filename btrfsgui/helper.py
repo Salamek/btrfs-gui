@@ -51,5 +51,6 @@ COMMANDS = {
 	"vol_df": hlp.size.volume_df,
 	"sub_list": hlp.subvol.sv_list,
 	"sub_del": hlp.subvol.sv_del,
+	"sub_make": hlp.subvol.sv_make,
 	"ls": hlp.vfs.ls,
 	}
