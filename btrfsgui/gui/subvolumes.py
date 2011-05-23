@@ -27,7 +27,8 @@ class Subvolumes(Frame, Requester):
 							  accelerator="Ctrl-N",
 							  command=self.create_subvolume)
 		self.menu.add_command(label="Snapshot",
-							  accelerator="Ctrl-S")
+							  accelerator="Ctrl-S",
+							  command=self.create_snapshot)
 		self.menu.add_command(label="Delete",
 							  command=self.delete_subvolume)
 		parent.add_cascade(label="Subvolume", menu=self.menu)
@@ -45,7 +46,8 @@ class Subvolumes(Frame, Requester):
 		self.sv_list.grid(sticky=N+S+W+E)
 
 		self.ctx_menu = Menu(self, tearoff=False)
-		self.ctx_menu.add_command(label="Snapshot")
+		self.ctx_menu.add_command(label="Snapshot",
+								  command=self.create_snapshot)
 		self.ctx_menu.add_command(label="Delete",
 								  command=self.delete_subvolume)
 		self.ctx_menu.bind("<FocusOut>", lambda e: self.ctx_menu.unpost())
@@ -68,6 +70,17 @@ class Subvolumes(Frame, Requester):
 		"""Show a directory tree, and create a subvolume in it.
 		"""
 		ask = NewSubvolume(self, self.fs["uuid"])
+		if ask.result:
+			self.change_display()
+
+	def create_snapshot(self):
+		"""Show a directory tree, and snapshot the current subvolume
+		to a user-selected position.
+		"""
+		subvid = self.sv_list.selection()[0]
+		subv = self.subvols[subvid]
+		vol_path = os.path.join(*(subv["full_path"] + [subv["name"],]))
+		ask = NewSubvolume(self, self.fs["uuid"], source=vol_path)
 		if ask.result:
 			self.change_display()
 
@@ -124,9 +137,10 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 	"""Show a directory/subvolume listing of the filesystem, and ask
 	for a filename for a new subvolume.
 	"""
-	def __init__(self, parent, uuid):
+	def __init__(self, parent, uuid, source=None):
 		self.uuid = uuid
 		self.result = False
+		self.source = source
 		tkinter.simpledialog.Dialog.__init__(self, parent)
 
 	def apply(self):
@@ -134,9 +148,15 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 		"""
 		item = self.file_list.focus()
 		path = self.file_list.set(item, "path")
-		rv, msg, data = self.parent.request("sub_make",
-											self.uuid,
-											os.path.join(path, self.name.get()))
+		target = os.path.join(path, self.name.get())
+
+		if self.source is None:
+			rv, msg, data = self.parent.request(
+				"sub_make", self.uuid, target)
+		else:
+			rv, msg, data = self.parent.request(
+				"sub_snap", self.uuid, self.source, target)
+
 		if int(rv) == 200:
 			self.result = True
 
