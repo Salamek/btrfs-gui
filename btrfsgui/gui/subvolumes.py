@@ -9,10 +9,25 @@ import os.path
 from btrfsgui.requester import Requester
 import btrfsgui.btrfs as btrfs
 
+def current_selection(fn):
+	"""Decorator to retrieve and set the current selection and
+	pass its details to the decorated method
+	"""
+	def newfn(self):
+		subvid = self.sv_list.selection()[0]
+		if subvid == "@":
+			vol_path = "."
+			vol_id = btrfs.FS_TREE_OBJECTID
+		else:
+			subv = self.subvols[subvid]
+			vol_path = os.path.join(*(subv["full_path"] + [subv["name"],]))
+			vol_id = subv["id"]
+		fn(self, vol_path, vol_id)
+	return newfn
+
 class Subvolumes(Frame, Requester):
 	"""Panel displaying a filesystem's subvolumes.
 	"""
-
 	def __init__(self, parent, comms):
 		Frame.__init__(self, parent)
 		Requester.__init__(self, comms)
@@ -73,23 +88,19 @@ class Subvolumes(Frame, Requester):
 		if ask.result:
 			self.change_display()
 
-	def create_snapshot(self):
+	@current_selection
+	def create_snapshot(self, vol_path, vol_id):
 		"""Show a directory tree, and snapshot the current subvolume
 		to a user-selected position.
 		"""
-		subvid = self.sv_list.selection()[0]
-		subv = self.subvols[subvid]
-		vol_path = os.path.join(*(subv["full_path"] + [subv["name"],]))
 		ask = NewSubvolume(self, self.fs["uuid"], source=vol_path)
 		if ask.result:
 			self.change_display()
 
-	def delete_subvolume(self):
+	@current_selection
+	def delete_subvolume(self, vol_path, vol_id):
 		"""Delete the subvolume selected in the list
 		"""
-		subvid = self.sv_list.selection()[0]
-		subv = self.subvols[subvid]
-		vol_path = os.path.join(*(subv["full_path"] + [subv["name"],]))
 		ok = tkinter.messagebox.askokcancel(
 			"Delete subvolume",
 			"This will delete the subvolume:\n\n{0}\n\nThis action cannot be undone.".format(vol_path),
