@@ -72,5 +72,6 @@ COMMANDS = {
 	"sub_list": hlp.subvol.sv_list,
 	"sub_del": hlp.subvol.sv_del,
 	"sub_make": hlp.subvol.sv_make,
+	"sub_snap": hlp.subvol.sv_snap,
 	"ls": hlp.vfs.ls,
 	}

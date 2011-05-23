@@ -10,6 +10,7 @@ import struct
 import json
 import itertools
 import os.path
+import stat
 
 from mount import Filesystem
 import btrfsgui.btrfs as btrfs
@@ -41,6 +42,11 @@ def local_path(fs, tree, inode):
 
 	rv.reverse()
 	return rv
+
+def is_subvol(st):
+	"""Check whether the object with stat results "st" is a subvolume
+	"""
+	return (stat.S_ISDIR(st.st_mode) and st.st_ino == 256)
 
 def sv_list(params):
 	"""List all the subvolumes on the filesystem.
@@ -136,3 +142,30 @@ def sv_make(params):
 		btrfs.ioctl_vol_args.pack_into(buf, 0,
 									   0, subv_name[:btrfs.PATH_NAME_MAX])
 		fcntl.ioctl(fd, btrfs.IOC_SUBVOL_CREATE, buf)
+
+def sv_snap(params):
+	"""Create a snapshot of the first parameter, at the second
+	"""
+	uuid, source, dest = params
+	with Filesystem(uuid) as fs:
+		source_path, source_name = os.path.split(source)
+		dest_path, dest_name = os.path.split(dest)
+
+		# Check the source status
+		st = os.stat(fs.fullpath(source))
+		if not is_subvol(st):
+			raise btrfsgui.helper.HelperException("Not a subvolume")
+		sys.stderr.write("Opening source path {0}\n".format(source))
+		source_fd = fs.open(source)
+
+		# Check the destination status
+		if os.path.exists(fs.fullpath(dest)):
+			raise btrfsgui.helper.HelperException("Destination exists")
+		sys.stderr.write("Opening destination path {0}\n".format(dest_path))
+		dest_fd = fs.open(dest_path)
+
+		buf = btrfs.sized_array()
+		btrfs.ioctl_vol_args.pack_into(buf, 0,
+									   source_fd,
+									   dest_name[:btrfs.PATH_NAME_MAX])
+		fcntl.ioctl(dest_fd, btrfs.IOC_SNAP_CREATE, buf)
