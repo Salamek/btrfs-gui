@@ -44,6 +44,8 @@ class Subvolumes(Frame, Requester):
 		self.menu.add_command(label="Snapshot",
 							  accelerator="Ctrl-S",
 							  command=self.create_snapshot)
+		self.menu.add_command(label="Set default",
+							  command=self.set_default)
 		self.menu.add_command(label="Delete",
 							  command=self.delete_subvolume)
 		parent.add_cascade(label="Subvolume", menu=self.menu)
@@ -63,6 +65,8 @@ class Subvolumes(Frame, Requester):
 		self.ctx_menu = Menu(self, tearoff=False)
 		self.ctx_menu.add_command(label="Snapshot",
 								  command=self.create_snapshot)
+		self.ctx_menu.add_command(label="Set default",
+								  command=self.set_default)
 		self.ctx_menu.add_command(label="Delete",
 								  command=self.delete_subvolume)
 		self.ctx_menu.bind("<FocusOut>", lambda e: self.ctx_menu.unpost())
@@ -109,6 +113,12 @@ class Subvolumes(Frame, Requester):
 		if ok:
 			rv, text, obj = self.request("sub_del", self.fs["uuid"], vol_path)
 			self.change_display()
+
+	@current_selection
+	def set_default(self, vol_path, vol_id):
+		"""Set the current selection to be the default subvolume
+		"""
+		rv, text, obj = self.request("sub_def", self.fs["uuid"], vol_id)
 
 	def set_selected(self, fs):
 		"""Pass parameters for the basic FS information so that we
