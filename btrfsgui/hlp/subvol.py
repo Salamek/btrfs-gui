@@ -169,3 +169,11 @@ def sv_snap(params):
 									   source_fd,
 									   dest_name[:btrfs.PATH_NAME_MAX])
 		fcntl.ioctl(dest_fd, btrfs.IOC_SNAP_CREATE, buf)
+
+def sv_def(params):
+	"""Set a subvolume to be default
+	"""
+	uuid, subvol = params
+	with Filesystem(uuid) as fs:
+		buf = btrfs.ioctl_default_subvol.pack(int(subvol))
+		fcntl.ioctl(fs, btrfs.IOC_DEFAULT_SUBVOL, buf)

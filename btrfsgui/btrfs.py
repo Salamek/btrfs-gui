@@ -16,6 +16,7 @@ IOC_SNAP_CREATE = 0x50009401
 IOC_SUBVOL_CREATE = 0x5000940e
 IOC_SNAP_DESTROY = 0x5000940f
 IOC_TREE_SEARCH = 0xd0009411
+IOC_DEFAULT_SUBVOL = 0x40089413
 IOC_SPACE_INFO = 0xc0109414
 
 # Object IDs
@@ -84,6 +85,7 @@ ioctl_search_key = struct.Struct("=Q6QLLL4x32x")
 ioctl_search_header = struct.Struct("=3Q2L")
 PATH_NAME_MAX=4087
 ioctl_vol_args = struct.Struct("=q4088s")
+ioctl_default_subvol = struct.Struct("=Q")
 
 # Internal data structures
 dev_item = struct.Struct("<3Q3L3QL2B16s16s")
