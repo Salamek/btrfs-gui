@@ -4,7 +4,7 @@ from tkinter import *
 from tkinter.ttk import *
 import collections
 
-from btrfsgui.requester import Requester
+from btrfsgui.requester import Requester, ex_handler
 import btrfsgui.btrfs as btrfs
 
 COLOURS = collections.OrderedDict(
@@ -315,6 +315,7 @@ class UsageDisplay(Frame, Requester):
 		self.stale = True
 		self.update_display()
 
+	@ex_handler
 	def update_display(self):
 		if not self.stale:
 			return

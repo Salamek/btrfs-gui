@@ -8,7 +8,7 @@ from tkinter.ttk import *
 
 from btrfsgui.gui.usagedisplay import UsageDisplay
 from btrfsgui.gui.subvolumes import Subvolumes
-from btrfsgui.requester import Requester
+from btrfsgui.requester import Requester, ex_handler
 
 class Application(Frame, Requester):
 	def __init__(self, comms, options):
@@ -119,6 +119,7 @@ class Application(Frame, Requester):
 		for w in self.datapane.tabs():
 			self.nametowidget(w).set_selected(fs)
 
+	@ex_handler
 	def scan(self):
 		rv, text, obj = self.request("scan")
 		self.fs_list.delete(*self.fs_list.get_children())
@@ -148,5 +149,4 @@ class Application(Frame, Requester):
 		self.set_selected(obj[0])
 
 	def quit_all(self):
-		self.request("quit")
 		self.quit()

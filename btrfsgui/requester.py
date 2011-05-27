@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import tkinter.messagebox
 
 class RequesterException(Exception):
 	def __init__(self, msg, value=500):
@@ -29,13 +30,16 @@ class Requester(object):
 
 		while True:
 			line = self.comms.stdout.readline()
-			if line.startswith("OK") or line.startswith("ERR"):
+			if line.startswith("OK"):
 				tmp, rv, message = line.split(None, 2)
 				break
+			elif line.startswith("ERR"):
+				tmp, rv, message = line.split(None, 2)
+				raise RequesterException(message, rv)
 			try:
 				ret = json.loads(line)
 			except ValueError:
-				return (599, "Unparsable data", None)
+				raise RequesterException("Unparsable data", 599)
 		return (rv, message, ret)
 
 	def request_array(self, *parts):
@@ -56,11 +60,19 @@ class Requester(object):
 					return
 				if line.startswith("ERR"):
 					tmp, code, message = line.split(None, 2)
-					raise RequesterException(code, message)
+					raise RequesterException(message, code)
 				try:
 					data = json.loads(line)
 				except ValueError:
-					raise RequesterException(599, "Unparsable data")
+					raise RequesterException("Unparsable data", 599)
 				yield data
 
 		return (100, "Not immediately fatal", ret())
+
+def ex_handler(fn):
+	def hdlr(*args, **kwargs):
+		try:
+			return fn(*args, **kwargs)
+		except RequesterException as rq:
+			tkinter.messagebox.showerror("Error", rq.message)
+	return hdlr

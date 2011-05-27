@@ -37,7 +37,7 @@ def main():
 			sys.stdout.write("ERR {0.rv} {0.message}\n".format(ex))
 			traceback.print_exc(None, sys.stderr)
 		except Exception, ex:
-			sys.stdout.write("ERR 550 {0}\n".format(ex))
+			sys.stdout.write("ERR 550 Root helper exception: {0}\n".format(ex))
 			traceback.print_exc(None, sys.stderr)
 		sys.stdout.flush()
 

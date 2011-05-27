@@ -6,7 +6,7 @@ import tkinter.messagebox
 import tkinter.simpledialog
 import os.path
 
-from btrfsgui.requester import Requester
+from btrfsgui.requester import Requester, ex_handler
 import btrfsgui.btrfs as btrfs
 
 def current_selection(fn):
@@ -85,6 +85,7 @@ class Subvolumes(Frame, Requester):
 			# menu properly.
 			self.ctx_menu.focus_set()
 
+	@ex_handler
 	def create_subvolume(self):
 		"""Show a directory tree, and create a subvolume in it.
 		"""
@@ -92,6 +93,7 @@ class Subvolumes(Frame, Requester):
 		if ask.result:
 			self.change_display()
 
+	@ex_handler
 	@current_selection
 	def create_snapshot(self, vol_path, vol_id):
 		"""Show a directory tree, and snapshot the current subvolume
@@ -101,6 +103,7 @@ class Subvolumes(Frame, Requester):
 		if ask.result:
 			self.change_display()
 
+	@ex_handler
 	@current_selection
 	def delete_subvolume(self, vol_path, vol_id):
 		"""Delete the subvolume selected in the list
@@ -114,6 +117,7 @@ class Subvolumes(Frame, Requester):
 			rv, text, obj = self.request("sub_del", self.fs["uuid"], vol_path)
 			self.change_display()
 
+	@ex_handler
 	@current_selection
 	def set_default(self, vol_path, vol_id):
 		"""Set the current selection to be the default subvolume
@@ -132,6 +136,7 @@ class Subvolumes(Frame, Requester):
 		self.stale = True
 		self.update_display()
 
+	@ex_handler
 	def update_display(self):
 		if not self.stale:
 			return
@@ -164,6 +169,7 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 		self.source = source
 		tkinter.simpledialog.Dialog.__init__(self, parent)
 
+	@ex_handler
 	def apply(self):
 		"""Process the data in this dialog
 		"""
@@ -222,6 +228,7 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 			return False
 		return True
 
+	@ex_handler
 	def populate_dir(self, parentid, dirname):
 		"""Populate the tree node at parentid with the contents of the
 		directory dirname
