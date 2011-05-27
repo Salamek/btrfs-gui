@@ -6,17 +6,34 @@
 import subprocess
 import json
 import sys
+import os.path
 
 import btrfsgui.helper
 
+SEARCH_PATH = [ "/usr/local/sbin",
+				"/usr/local/bin",
+				"/sbin",
+				"/bin",
+				"/usr/sbin",
+				"/usr/bin",
+				"." ]
+_found_btrfs = None
+
 def scan(parameters):
+	global _found_btrfs
+
 	devnull = open("/dev/null", "w")
-	scanner = subprocess.call(["btrfs", "device", "scan"],
+
+	if _found_btrfs is None:
+		_found_btrfs = find_btrfs_binary()
+
+	scanner = subprocess.call([_found_btrfs, "device", "scan"],
 							  stderr=subprocess.STDOUT, stdout=devnull)
 	if scanner != 0:
 		raise btrfsgui.helper.HelperException("Couldn't run btrfs dev scan")
-	scandata = subprocess.Popen(["btrfs", "filesystem", "show"],
+	scandata = subprocess.Popen([_found_btrfs, "filesystem", "show"],
 								stderr=devnull, stdout=subprocess.PIPE).stdout
+
 	fslist = []
 	for line in scandata:
 		if line.startswith("Label:"):
@@ -39,3 +56,12 @@ def scan(parameters):
 
 	sys.stdout.write(json.dumps(fslist))
 	sys.stdout.write("\n")
+
+def find_btrfs_binary():
+	"""Run through a path to find the btrfs binary
+	"""
+	for d in SEARCH_PATH:
+		command = os.path.join(d, "btrfs")
+		if os.path.exists(command):
+			return command
+	raise btrfsgui.helper.HelperException("btrfs command not found in path {0}".format(":".join(SEARCH_PATH)))
