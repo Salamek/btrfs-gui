@@ -13,22 +13,11 @@ DIST_FILES = btrfs-gui btrfs-gui-helper $(DOC_FILES) $(SUPPORT_FILES) \
 all: icons version
 
 # Produce a distribution tarball
-tarball: icons version
-	$(eval DIST_DIR := btrfs-gui-$(shell cat .version))
-	@mkdir $(DIST_DIR)
-	@for file in $(DIST_FILES); do \
-		if echo $${file} | fgrep -q /; then \
-			mkdir -p $(DIST_DIR)/$${file%/*} ;\
-		fi ;\
-		cp $${file} $(DIST_DIR)/$${file} ;\
-	done
-	@cp btrfs-gui btrfs-gui-helper $(DIST_DIR)
-	@tar -czf $(DIST_DIR).tar.gz $(DIST_DIR)
-	@rm -rf $(DIST_DIR)
+tarball: icons
+	python3 setup.py sdist
 
 install:
-	@echo No installer ready yet.
-	@echo Please run directly from the source directory with ./btrfs-gui
+	python3 setup.py install
 
 # Image conversion: requires inkscape. Alternatively, download the
 # tarball to get the images.
