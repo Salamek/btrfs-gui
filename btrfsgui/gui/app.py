@@ -57,9 +57,9 @@ class Application(Frame, Requester):
 		self.sidebar.add(fs_frame)
 		self.fs_list.bind("<Double-Button-1>", self.select_fs)
 
-		self.images = { "fs": PhotoImage(file="img/fs_icon.gif"),
-						"fs-sel": PhotoImage(file="img/fs_icon_open.gif"),
-						"dev": PhotoImage(file="img/disk_icon.gif"), }
+		self.images = { "fs": image_or_blank(file="img/fs_icon.gif"),
+						"fs-sel": image_or_blank(file="img/fs_icon_open.gif"),
+						"dev": image_or_blank(file="img/disk_icon.gif"), }
 		self.fs_list.tag_configure("fs", image=self.images["fs"])
 		self.fs_list.tag_configure("dev", image=self.images["dev"])
 
@@ -150,3 +150,13 @@ class Application(Frame, Requester):
 
 	def quit_all(self):
 		self.quit()
+
+
+def image_or_blank(file):
+	"""Find and return a tkinter image that can be used as an icon
+	"""
+	try:
+		return PhotoImage(file=file)
+	except:
+		print("Could not find icon file {0}. You may need to run make.".format(file))
+		return PhotoImage()
