@@ -95,6 +95,7 @@ stripe = struct.Struct("<2Q16s")
 block_group_item = struct.Struct("<3Q")
 root_ref = struct.Struct("<2QH")
 inode_ref = struct.Struct("<QH")
+dir_item = struct.Struct("<QBQQHHB")
 
 def format_uuid(id):
 	return "{0:02x}{1:02x}{2:02x}{3:02x}-{4:02x}{5:02x}-{6:02x}{7:02x}-{8:02x}{9:02x}-{10:02x}{11:02x}{12:02x}{13:02x}{14:02x}{15:02x}".format(*struct.unpack("16B", id))

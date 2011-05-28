@@ -6,6 +6,7 @@ import tkinter.messagebox
 import tkinter.simpledialog
 import os.path
 
+from btrfsgui.gui.lib import image_or_blank
 from btrfsgui.requester import Requester, ex_handler
 import btrfsgui.btrfs as btrfs
 
@@ -72,6 +73,11 @@ class Subvolumes(Frame, Requester):
 		self.ctx_menu.bind("<FocusOut>", lambda e: self.ctx_menu.unpost())
 
 		self.sv_list.bind("<Button-3>", self.popup_menu)
+
+		self.img = { "dir": image_or_blank("img/directory.gif"),
+					 "subv": image_or_blank("img/subvolume.gif"),
+					 "subv-def": image_or_blank("img/subvolume_default.gif"),
+					 }
 
 	def popup_menu(self, ev):
 		"""Select an item, and pop up the context menu for it
@@ -147,16 +153,27 @@ class Subvolumes(Frame, Requester):
 		# Get the list of subvolumes, and populate the display
 		rv, text, self.subvols = self.request("sub_list", self.fs["uuid"])
 
-		self.sv_list.insert("", "end", text="@", iid="@", values=["0", ""], open=True)
+		self.sv_list.insert("", "end", text="@", iid="@", values=["0", ""],
+							open=True, image=self.img["subv"])
+
+		def_set = False
 		for subv in sorted(self.subvols.values(), key=lambda x: len(x["full_path"])):
 			path = os.path.join(*(subv["full_path"] + [subv["name"]]))
+			img = self.img["subv"]
+			if subv.get("default", False):
+				def_set = True
+				img = self.img["subv-def"]
 			self.sv_list.insert(
 				"@",
 				"end",
 				text=path,
 				iid=subv["id"],
 				values=[subv["name"], subv["id"]],
-				open=True)
+				open=True,
+				image=img)
+
+		if not def_set:
+			self.sv_list.item("@", image=self.img["subv-def"])
 
 
 class NewSubvolume(tkinter.simpledialog.Dialog):
@@ -197,7 +214,8 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 							  text="@",
 							  iid="@",
 							  values=["."],
-							  open=True)
+							  open=True,
+							  image=self.parent.img["subv"])
 		self.populate_dir("@", ".")
 		self.file_list.bind("<<TreeviewOpen>>", self.opened_dir)
 		self.file_list.grid(sticky=N+S+E+W, padx=8, pady=8, columnspan=2)
@@ -241,13 +259,15 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 		self.file_list.set_children(parentid)
 		for item in data:
 			extra = ""
+			img = self.parent.img["dir"]
 			if item["inode"] == 256:
-				extra = " **"
+				img = self.parent.img["subv"]
 			iid = self.file_list.insert(parentid, "end",
 										text=item["name"]+extra,
 										values=[os.path.join(dirname,
 															 item["name"])],
-										open=False)
+										open=False,
+										image=img)
 			self.file_list.insert(iid, "end", text="")
 
 	def opened_dir(self, ev):

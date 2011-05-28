@@ -1,7 +1,7 @@
 # Makefile for btrfs-gui
 
 # What do we need to ship?
-ICONS := disk_icon fs_icon fs_icon_open
+ICONS := disk_icon fs_icon fs_icon_open subvolume subvolume_default directory
 ICON_FILES := $(foreach icon,$(ICONS),img/$(icon).gif)
 PY_LIB_FILES := $(shell find btrfsgui -name \*.py)
 DOC_FILES := README LICENCE
