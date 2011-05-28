@@ -81,7 +81,7 @@ class SplitBox(object):
 		self.total = 0
 		for div in self.divisions:
 			self.total += div
-		if self.total = 0:
+		if self.total == 0:
 			self.total = 1
 
 	def set_position(self, xoffset, yoffset, width, height):
