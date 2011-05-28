@@ -76,6 +76,7 @@ def parse(line):
 COMMANDS = {
 	"quit": quit_all,
 	"scan": hlp.globalops.scan,
+	"mkfs": hlp.globalops.mkfs,
 	"df": hlp.size.df,
 	"vol_df": hlp.size.volume_df,
 	"sub_list": hlp.subvol.sv_list,
