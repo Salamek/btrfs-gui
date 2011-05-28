@@ -6,6 +6,7 @@
 from tkinter import *
 from tkinter.ttk import *
 
+from btrfsgui.gui.lib import image_or_blank
 from btrfsgui.gui.usagedisplay import UsageDisplay
 from btrfsgui.gui.subvolumes import Subvolumes
 from btrfsgui.requester import Requester, ex_handler
@@ -150,13 +151,3 @@ class Application(Frame, Requester):
 
 	def quit_all(self):
 		self.quit()
-
-
-def image_or_blank(file):
-	"""Find and return a tkinter image that can be used as an icon
-	"""
-	try:
-		return PhotoImage(file=file)
-	except:
-		print("Could not find icon file {0}. You may need to run make.".format(file))
-		return PhotoImage()
