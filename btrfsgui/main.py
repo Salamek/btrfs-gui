@@ -10,9 +10,9 @@ def main():
 	parser.add_option("-R", "--remote", action="store", dest="ssh",
 					  metavar="<host>",
 					  help="Run on the remote system <host>")
-	parser.add_option("-s", "--sudo-helper", action="store", dest="sudo_helper",
+	parser.add_option("-s", "--sudo", action="store", dest="sudo_helper",
 					  metavar="<cmd>",
-					  help="Use <cmd> as helper for gaining root privileges")
+					  help="Use <cmd> for gaining root privileges")
 	parser.add_option("-H", "--helper", action="store", dest="helper",
 					  metavar="<path>", default="./btrfs-gui-helper",
 					  help="Location of the root-helper to use")

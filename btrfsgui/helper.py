@@ -2,6 +2,7 @@
 
 import sys
 import traceback
+import os
 
 import hlp.globalops
 import hlp.vfs
@@ -18,7 +19,15 @@ def quit_all(params):
 
 def main():
 	"""Run a R-E-P loop."""
-	
+
+	if os.geteuid() != 0:
+		sys.stdout.write("ERR 550 Root helper not running as root\n")
+		sys.stdout.flush()
+		sys.exit(1)
+	else:
+		sys.stdout.write("OK 200 Ready\n")
+		sys.stdout.flush()
+
 	while True:
 		sys.stdin.flush()
 		line = sys.stdin.readline()

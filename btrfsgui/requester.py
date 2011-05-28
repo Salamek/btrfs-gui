@@ -75,4 +75,9 @@ def ex_handler(fn):
 			return fn(*args, **kwargs)
 		except RequesterException as rq:
 			tkinter.messagebox.showerror("Error", rq.message)
+		except IOError as ioe:
+			if ioe.errno == 32: # Broken pipe
+				tkinter.messagebox.showerror(title="This helper is dead", message="Root helper has stopped unexpectedly. Restart the application to continue.")
+			else:
+				raise
 	return hdlr

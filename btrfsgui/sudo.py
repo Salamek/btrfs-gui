@@ -26,7 +26,6 @@ def init_root_process(params):
 	if params.ssh:
 		cmd[0:0] = ["ssh"] + params.ssh.split(" ")
 
-	print(cmd)
 	subproc = subprocess.Popen(
 		cmd, universal_newlines=True,
 		stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -40,5 +39,10 @@ def init_root_process(params):
 			# We can't -- bomb out with an error
 			sys.stderr.write("This GUI must not be run as root. Use --force-root to override\n")
 			sys.exit(1)
+
+	line = subproc.stdout.readline()
+	if line.startswith("ERR"):
+		print("Couldn't start root helper. Aborted")
+		sys.exit(1)
 
 	return subproc
