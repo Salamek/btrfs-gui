@@ -129,6 +129,7 @@ class Subvolumes(Frame, Requester):
 		"""Set the current selection to be the default subvolume
 		"""
 		rv, text, obj = self.request("sub_def", self.fs["uuid"], vol_id)
+		self.update_display()
 
 	def set_selected(self, fs):
 		"""Pass parameters for the basic FS information so that we
