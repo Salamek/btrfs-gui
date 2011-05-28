@@ -104,6 +104,25 @@ def sv_list(params):
 									+ data["full_path"]
 				parent_id = res[parent_id]["parent"]
 
+		# Look for the default subvolume
+		items = btrfs.search(fsfd,
+							 btrfs.ROOT_TREE_OBJECTID,
+							 btrfs.ROOT_TREE_DIR_OBJECTID,
+							 btrfs.DIR_ITEM_KEY,
+							 buf=buf,
+							 structure=btrfs.dir_item)
+		while items:
+			header, raw_data, data = items.pop(0)
+			name = struct.unpack_from("{0}s".format(data[5]),
+									  raw_data,
+									  btrfs.dir_item.size)[0]
+			if name == "default":
+				if data[0] in res:
+					res[data[0]]["default"] = True
+				elif data[0] != btrfs.FS_TREE_OBJECTID:
+					sys.stderr.write("Hmm. Found a default subvolume ({0}), but this subvolume is not present.\n".format(data[0]))
+				break
+
 	sys.stdout.write(json.dumps(res))
 	sys.stdout.write("\n")
 
