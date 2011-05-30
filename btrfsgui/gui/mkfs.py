@@ -10,12 +10,13 @@ from btrfsgui.gui.lib import image_or_blank
 from btrfsgui.requester import Requester, ex_handler
 import btrfsgui.btrfs as btrfs
 
-class MkfsDialog(tkinter.simpledialog.Dialog):
+class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 	"""Show options for making a filesystem
 	"""
-	def __init__(self, parent):
+	def __init__(self, parent, comms):
 		self.result = False
 		self.devices = []
+		Requester.__init__(self, comms)
 		tkinter.simpledialog.Dialog.__init__(self, parent)
 
 	@ex_handler
@@ -77,24 +78,25 @@ class MkfsDialog(tkinter.simpledialog.Dialog):
 		self.device_list.grid(columnspan=5, sticky=N+S+E+W, padx=4, pady=4)
 		self.device_filter = StringVar()
 		self.device_filter.set("dev")
-		Radiobutton(frm, text="All",
+		Radiobutton(frm, text="All", command=self.fill_device_list,
 					variable=self.device_filter, value="all")\
 					.grid(row=1, column=0, padx=4, pady=4)
-		Radiobutton(frm, text="/dev",
+		Radiobutton(frm, text="/dev", command=self.fill_device_list,
 					variable=self.device_filter, value="dev")\
 					.grid(row=1, column=1, padx=4, pady=4)
-		Radiobutton(frm, text="By ID",
+		Radiobutton(frm, text="By ID", command=self.fill_device_list,
 					variable=self.device_filter, value="id")\
 					.grid(row=1, column=2, padx=4, pady=4)
-		Radiobutton(frm, text="By UUID",
+		Radiobutton(frm, text="By UUID", command=self.fill_device_list,
 					variable=self.device_filter, value="uuid")\
 					.grid(row=1, column=3, padx=4, pady=4)
-		Radiobutton(frm, text="By path",
+		Radiobutton(frm, text="By path", command=self.fill_device_list,
 					variable=self.device_filter, value="path")\
 					.grid(row=1, column=4, padx=4, pady=4)
 		frm.grid(row=0, column=1, sticky=N+S+E+W, padx=4, pady=4, rowspan=4)
 
 		self.bind("<Escape>", self.cancel)
+		self.fill_device_list()
 
 	def buttons_valid(self):
 		"""Enable/disable the buttons according to which options are
@@ -115,6 +117,34 @@ class MkfsDialog(tkinter.simpledialog.Dialog):
 		self.mbuttons["RAID-0"].state(state)
 		self.dbuttons["RAID-1"].state(state)
 
+	@ex_handler
+	def fill_device_list(self):
+		"""Fill the list of available devices
+		"""
+		# Clear the existing list
+		self.device_list.delete(*self.device_list.get_children())
+
+		for dev in self.devices:
+			self.device_list.insert("", "end", text="* " + dev["fullname"])
+
+		# Ask the root helper for a filtered list of devices, based on
+		# our options
+		cmd = ["ls_blk"]
+		if self.device_filter.get() == "all":
+			cmd.append("-r")
+		path = { "all": "/dev",
+				 "dev": "/dev",
+				 "id": "/dev/disk/by-id",
+				 "uuid": "/dev/disk/by-uuid",
+				 "path": "/dev/disk/by-path" }[self.device_filter.get()]
+		cmd.append(path)
+
+		rv, message, items = self.request_array(*cmd)
+		for dev in sorted(list(items), key=lambda x: x["fullname"]):
+			pos = "end"
+			if dev in self.devices:
+				continue
+			self.device_list.insert("", "end", text=dev["fullname"])
 
 	def validate(self):
 		"""Check that the data in the dialog is sane.

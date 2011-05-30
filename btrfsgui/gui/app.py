@@ -126,7 +126,7 @@ class Application(Frame, Requester):
 	def new_filesystem(self):
 		"""Create a new filesystem
 		"""
-		win = MkfsDialog(self)
+		win = MkfsDialog(self, self.comms)
 		if win.result:
 			self.scan()
 
