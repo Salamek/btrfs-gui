@@ -85,4 +85,5 @@ COMMANDS = {
 	"sub_snap": hlp.subvol.sv_snap,
 	"sub_def": hlp.subvol.sv_def,
 	"ls": hlp.vfs.ls,
+	"ls_blk": hlp.vfs.ls_blk,
 	}

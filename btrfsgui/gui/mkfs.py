@@ -114,7 +114,6 @@ class MkfsDialog(tkinter.simpledialog.Dialog):
 		self.dbuttons["RAID-0"].state(state)
 		self.mbuttons["RAID-0"].state(state)
 		self.dbuttons["RAID-1"].state(state)
-		self.mbuttons["RAID-1"].state(state)
 
 
 	def validate(self):

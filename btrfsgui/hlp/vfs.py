@@ -15,7 +15,7 @@ import btrfsgui.helper
 
 _filters = { "all": lambda s: True,
 			 "dir": stat.S_ISDIR,
-			 "block": lambda s: stat.S_ISDIR(s) or stat.S_ISBLK(s)
+			 "block": stat.S_ISBLK
 			 }
 
 def ls(params):
@@ -40,16 +40,45 @@ def ls(params):
 	with Filesystem(uuid) as fs:
 		path = fs.fullpath(path)
 		for name in os.listdir(path):
-			stats = os.stat(os.path.join(path, name))
-			if not typefilter(stats.st_mode):
-				continue
-			res = { "name": name,
-					"mode": stats.st_mode,
-					"inode": stats.st_ino,
-					}
-			if stat.S_ISBLK(stats.st_mode) or stat.S_ISCHR(stats.st_mode):
-				res["rdev"] = stats.st_rdev
+			_output_file_details(typefilter, path, name)
 
-			sys.stdout.write(json.dumps(res))
-			sys.stdout.write("\n")
-			sys.stdout.flush()
+def ls_blk(params):
+	"""Return a listing of the block devices in a directory
+	"""
+	recursive = False
+	while True:
+		p = params.pop(0)
+		if p[0] != "-":
+			break
+		if p == "-r":
+			recursive = True
+	typefilter = _filters["block"]
+
+	if recursive:
+		for path, dirs, files in os.walk(p):
+			for f in files:
+				_output_file_details(typefilter, path, f)
+	else:
+		for f in os.listdir(p):
+			_output_file_details(typefilter, p, f)
+
+def _output_file_details(typefilter, p, f):
+	filename = os.path.join(p, f)
+	try:
+		stats = os.stat(filename)
+	except:
+		return
+	if not typefilter(stats.st_mode):
+		return
+	res = { "name": f,
+			"path": p,
+			"fullname": filename,
+			"mode": stats.st_mode,
+			"inode": stats.st_ino,
+			}
+	if stat.S_ISBLK(stats.st_mode) or stat.S_ISCHR(stats.st_mode):
+		res["rdev"] = stats.st_rdev
+
+	sys.stdout.write(json.dumps(res))
+	sys.stdout.write("\n")
+	sys.stdout.flush()
