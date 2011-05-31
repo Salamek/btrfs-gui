@@ -17,6 +17,7 @@ class Application(Frame, Requester):
 		Requester.__init__(self, comms)
 
 		self.options = options
+		self.selected_fs = None
 
 		self.grid(sticky=N+S+E+W)
 		self.set_styles()
@@ -107,23 +108,30 @@ class Application(Frame, Requester):
 		rowid = self.fs_list.identify_row(event.y)
 		if rowid.find(":") != -1:
 			rowid = self.fs_list.parent(rowid)
-		# The row ID is the UUID of the filesystem
-		for fs in self.filesystems:
-			if fs["uuid"] == rowid:
-				self.set_selected(fs)
-				self.fs_list.item(fs["uuid"], image=self.images["fs-sel"])
-			else:
-				self.fs_list.item(fs["uuid"], image=self.images["fs"])
+		for afs in self.filesystems:
+			if afs["uuid"] == rowid:
+				self.set_selected(afs)
+				break
 
 	def set_selected(self, fs):
+		"""Set the given selection in the UI
+		"""
 		self.selected_fs = fs
+
+		for afs in self.filesystems:
+			# The row ID is the UUID of the filesystem
+			if afs["uuid"] == fs["uuid"]:
+				self.fs_list.item(afs["uuid"], image=self.images["fs-sel"])
+			else:
+				self.fs_list.item(afs["uuid"], image=self.images["fs"])
+
 		for w in self.datapane.tabs():
 			self.nametowidget(w).set_selected(fs)
 
 	@ex_handler
 	def scan(self):
-		rv, text, obj = self.request("scan")
 		self.fs_list.delete(*self.fs_list.get_children())
+		rv, text, obj = self.request("scan")
 		self.filesystems = obj
 
 		for fs in obj:
@@ -147,7 +155,10 @@ class Application(Frame, Requester):
 					tags=["dev",],
 					image=self.images["dev"])
 
-		self.set_selected(obj[0])
+		if self.selected_fs is not None:
+			self.set_selected(self.selected_fs)
+		else:
+			self.set_selected(obj[0])
 
 	def quit_all(self):
 		self.quit()
