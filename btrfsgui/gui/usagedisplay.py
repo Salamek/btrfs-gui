@@ -5,6 +5,7 @@ from tkinter.ttk import *
 import collections
 
 from btrfsgui.requester import Requester, ex_handler
+from btrfsgui.gui.lib import ScrolledCanvas
 import btrfsgui.btrfs as btrfs
 
 COLOURS = collections.OrderedDict(
@@ -162,6 +163,7 @@ class UsageDisplay(Frame, Requester):
 		self.columnconfigure(len(COLOURS), weight=1)
 		self.rowconfigure(1, minsize=30)
 		self.rowconfigure(2, minsize=30)
+		self.rowconfigure(4, weight=1)
 
 		sty = Style()
 		for i, (name, (meta, data, sys)) in enumerate(iter(COLOURS.items())):
@@ -211,9 +213,17 @@ class UsageDisplay(Frame, Requester):
 		but.grid(row=2, column=1, sticky=W)
 		self.df_selection.set("alloc")
 
-		self.per_disk = LabelFrame(self, text="Volumes")
-		self.per_disk.grid(sticky=N+S+E+W, row=4, column=0,
-						   columnspan=len(COLOURS)+1, padx=8, pady=4)
+		frm = LabelFrame(self, text="Volumes")
+		frm.columnconfigure(0, weight=1)
+		frm.rowconfigure(0, weight=1)
+		ifrm, self.per_disk = ScrolledCanvas(
+			frm,
+			width=DF_BOX_WIDTH+DF_BOX_PADDING*2+20,
+			height=DF_BOX_HEIGHT+DF_BOX_HEIGHT*2+40)
+		ifrm.grid(sticky=N+S+E+W)
+		frm.grid(sticky=N+S+E+W, row=4, column=0,
+				 columnspan=len(COLOURS)+1,
+				 padx=8, pady=4)
 		self.per_disk.columnconfigure(0, weight=1)
 
 	def set_selected(self, fs):
@@ -329,9 +339,7 @@ class UsageDisplay(Frame, Requester):
 			DF_BOX_PADDING+DF_BOX_WIDTH, DF_BOX_PADDING+DF_BOX_HEIGHT,
 			width=1, fill="#00ff00", tags=("all", "outline"))
 
-		children = self.per_disk.winfo_children()
-		for kid in children:
-			kid.destroy()
+		self.per_disk.delete("all")
 
 		# Now set up a block for each disk, and populate it
 		canvases = {}
@@ -343,21 +351,32 @@ class UsageDisplay(Frame, Requester):
 			if obj["size"] > max_space:
 				max_space = obj["size"]
 
-		for dev in self.fs["vols"]:
+		y = 4
+		for i, dev in enumerate(self.fs["vols"]):
 			obj = dev["usage"]
 			frame = LabelFrame(self.per_disk,
 							   text=dev["path"])
-			frame.grid(sticky=E+W, padx=8, pady=4)
+			frame.grid(sticky=N+S+E+W)
+			container = self.per_disk.create_window(
+				4, y, anchor=N+W,
+				tags=("all", "dev{0}".format(i), dev["path"]),
+				window=frame)
 			frame.columnconfigure(0, weight=1)
 			canvas = Canvas(frame,
 							width=DF_BOX_WIDTH+2*DF_BOX_PADDING,
 							height=DF_BOX_HEIGHT+2*DF_BOX_PADDING)
 			canvas.grid(sticky=N+S+E+W)
 			canvases[dev["id"]] = canvas
+			self.update_idletasks()
+			bbox = self.per_disk.bbox(container)
+			y = bbox[3] + 4
 			raw_free += self.create_usage_box(canvas,
 											  obj["usage"].values(),
 											  size=obj["size"],
 											  max_size=max_space)
+		self.per_disk.configure(
+			scrollregion=(0, 0,
+						  DF_BOX_WIDTH+DF_BOX_PADDING*2+20, y))
 
 		# Get the allocation and usage of all the block group types
 		rv, text, obj = self.request("df", self.fs["uuid"])
