@@ -20,7 +20,7 @@ def init_root_process(params):
 		if params.sudo_helper:
 			cmd[0:0] = params.sudo_helper.split(" ")
 		else:
-			sys.stderr.write("Can't run without privileges: run through sudo, or use --sudo-helper\n")
+			sys.stderr.write("Can't run without privileges: run through sudo, or use --sudo\n")
 			sys.exit(1)
 
 	if params.ssh:
