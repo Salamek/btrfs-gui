@@ -6,7 +6,7 @@
 from tkinter import *
 from tkinter.ttk import *
 
-from btrfsgui.gui.lib import image_or_blank
+from btrfsgui.gui.lib import image_or_blank, ScrolledTreeview
 from btrfsgui.gui.usagedisplay import UsageDisplay
 from btrfsgui.gui.subvolumes import Subvolumes
 from btrfsgui.requester import Requester, ex_handler
@@ -47,15 +47,14 @@ class Application(Frame, Requester):
 		fs_frame = Frame(self.sidebar)
 		fs_frame.rowconfigure(1, weight=1)
 		fs_frame.columnconfigure(0, weight=1)
-		fs_frame_label = Label(fs_frame, text="Filesystems")
-		fs_frame_label.grid(sticky=N+S+W)
+		Label(fs_frame, text="Filesystems").grid(sticky=W)
 		self.fs_list_pos = IntVar()
-		self.fs_list = Treeview(
+		fsl_frame, self.fs_list = ScrolledTreeview(
 			fs_frame,
 			columns=["", "UUID"])
 		self.fs_list.heading("#0", text="Filesystem", anchor="w")
 		self.fs_list.heading("UUID", text="UUID", anchor="w")
-		self.fs_list.grid(sticky=N+S+E+W)
+		fsl_frame.grid(sticky=N+S+E+W)
 		self.sidebar.add(fs_frame)
 		self.fs_list.bind("<Double-Button-1>", self.select_fs)
 
