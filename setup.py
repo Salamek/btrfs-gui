@@ -53,8 +53,60 @@ def reset2to3():
 				os.rename(os.path.join(dirpath, f),
 						  os.path.join(dirpath, orig))
 
+def convert_wrapper(fn):
+	"""Wrap up a function with a reasonably safe convert/restore
+	operation, using convert2to3 and reset2to3.
+	"""
+	def rf():
+		if sys.version_info[0] >= 3:
+			# Convert the python2 bits in the source to python3
+			convert2to3()
+		try:
+			fn()
+		finally:
+			if sys.version_info[0] >= 3:
+				# Restore the original files
+				reset2to3()
+	return rf
+
+@convert_wrapper
+def setup_gui():
+	"""Set up the full package, including the helper.
+	"""
+	setup(
+		name="btrfs-gui",
+		version=get_version_string(),
+		description="A graphical user interface for btrfs functions",
+		author="Hugo Mills",
+		author_email="hugo@carfax.org.uk",
+		url="http://carfax.org.uk/btrfs-gui",
+		packages=["btrfsgui", "btrfsgui.gui", "btrfsgui.hlp"],
+		scripts=["btrfs-gui", "btrfs-gui-helper"],
+		data_files=[("share/btrfs-gui/img",
+					 glob.glob(os.path.join("img", "*.gif")) + ["img/icons.svg"]),
+					],
+		)
+
+@convert_wrapper
+def setup_helper():
+	"""Set up just the helper
+	"""
+	pyv = ""
+	if sys.version_info[0] < 3:
+		pyv = "-py2"
+	setup(
+		name="btrfs-gui-helper" + pyv,
+		version=get_version_string(),
+		description="A graphical user interface for btrfs functions: user-space parts",
+		author="Hugo Mills",
+		author_email="hugo@carfax.org.uk",
+		url="http://carfax.org.uk/btrfs-gui",
+		packages=["btrfsgui", "btrfsgui.hlp"],
+		scripts=["btrfs-gui-helper"],
+		)
+
 if __name__ == "__main__":
-	if sys.version_info.major < 3:
+	if sys.version_info[0] < 3:
 		print("""btrfs-gui requires python 3.
 If you want to install the btrfs-gui root helper on its own, use the
 setup-helper.py script instead.""")
@@ -63,21 +115,4 @@ setup-helper.py script instead.""")
 	# Run make to make the icons
 	Popen(["make"], stdout=PIPE).communicate()
 
-	# Convert the python2 bits in the source to python3
-	convert2to3()
-
-	setup(
-		name="btrfs-gui",
-		version=get_version_string(),
-		description="A graphical user interface for btrfs functions",
-		author="Hugo Mills",
-		author_email="hugo@carfax.org.uk",
-		url="http://carfax.org.uk/btrfs-gui",
-		packages=["btrfsgui", "btrfsgui.hlp", "btrfsgui.gui"],
-		scripts=["btrfs-gui", "btrfs-gui-helper"],
-		data_files=[("share/btrfs-gui/img",
-					 glob.glob(os.path.join("img", "*.gif")) + ["img/icons.svg"]),
-					],
-		)
-
-	reset2to3()
+	setup_gui()
