@@ -10,7 +10,7 @@ SUPPORT_FILES := Makefile
 DIST_FILES = btrfs-gui btrfs-gui-helper $(DOC_FILES) $(SUPPORT_FILES) \
 	$(ICON_FILES) $(PY_LIB_FILES)
 
-all: icons version
+all: icons
 
 # Produce a distribution tarball
 tarball: icons
@@ -33,22 +33,6 @@ img/%.png: img/icons.svg
 img/%.gif: img/%.png
 	@convert $< $@ || \
 	wget $(ICONS_WEB)/$*.gif -O $@
-
-# Work out a version string: get the latest tag from git. If that
-# doesn't match the current revision number, append the revision
-# number to it as well.
-version:
-	$(eval VERSION := $(shell git tag -l | grep ^v[0-9] | tail -1))
-	@echo $(VERSION) | sed -e s/^v// >.version-list
-	@if [ $$(git show --pretty=format:%H $(VERSION) | head -1) != $$(git log -1 --pretty=format:%H) ]; then \
-		git log -1 --pretty=format:%h >>.version-list ;\
-	fi
-	@for part in $$(cat .version-list); do \
-		echo -n $${part}- ;\
-	done | sed -e s/-$$// >.version.new
-	@mv .version.new .version
-	@rm .version-list
-	@echo $$(cat .version)
 
 clean:
 	@find -name \*~ -o -name \*.pyc -exec rm -f {} \;
