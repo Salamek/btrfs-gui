@@ -4,11 +4,11 @@ import sys
 import traceback
 import os
 
-import hlp.globalops
-import hlp.vfs
-import hlp.size
-import hlp.subvol
-from hlp.lib import HelperException
+import btrfsgui.hlp.globalops
+import btrfsgui.hlp.vfs
+import btrfsgui.hlp.size
+import btrfsgui.hlp.subvol
+from btrfsgui.hlp.lib import HelperException
 
 def quit_all(params):
 	sys.exit(0)
@@ -71,13 +71,13 @@ def parse(line):
 
 COMMANDS = {
 	"quit": quit_all,
-	"scan": hlp.globalops.scan,
-	"df": hlp.size.df,
-	"vol_df": hlp.size.volume_df,
-	"sub_list": hlp.subvol.sv_list,
-	"sub_del": hlp.subvol.sv_del,
-	"sub_make": hlp.subvol.sv_make,
-	"sub_snap": hlp.subvol.sv_snap,
-	"sub_def": hlp.subvol.sv_def,
-	"ls": hlp.vfs.ls,
+	"scan": btrfsgui.hlp.globalops.scan,
+	"df": btrfsgui.hlp.size.df,
+	"vol_df": btrfsgui.hlp.size.volume_df,
+	"sub_list": btrfsgui.hlp.subvol.sv_list,
+	"sub_del": btrfsgui.hlp.subvol.sv_del,
+	"sub_make": btrfsgui.hlp.subvol.sv_make,
+	"sub_snap": btrfsgui.hlp.subvol.sv_snap,
+	"sub_def": btrfsgui.hlp.subvol.sv_def,
+	"ls": btrfsgui.hlp.vfs.ls,
 	}
