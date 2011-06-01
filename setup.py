@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 
 from distutils.core import setup
-from subprocess import Popen, PIPE
+from subprocess import call, Popen, PIPE
+import os
 import os.path
 import glob
 import sys
@@ -30,6 +31,28 @@ def get_version_string():
 		version = "unknown"
 	return version
 
+def convert2to3():
+	"""Automatically convert the python2 bits to python3 before installing
+	"""
+	patch = open("convert.patch", "w")
+	devnull = open("/dev/null", "w")
+	call(["2to3", "btrfsgui/hlp", "btrfs-gui-helper"],
+		 stdout=patch, stderr=devnull)
+	patch.close()
+	patch = open("convert.patch", "r")
+	call(["patch", "-p0", "-b", "-z.orig-py2"], stdin=patch)
+	patch.close()
+
+def reset2to3():
+	"""Undo what convert2to3() did
+	"""
+	for dirpath, dirnames, filenames in os.walk("btrfsgui"):
+		for f in filenames:
+			orig, ext = os.path.splitext(f)
+			if ext == ".orig-py2":
+				os.rename(os.path.join(dirpath, f),
+						  os.path.join(dirpath, orig))
+
 if __name__ == "__main__":
 	if sys.version_info.major < 3:
 		print("""btrfs-gui requires python 3.
@@ -39,6 +62,9 @@ setup-helper.py script instead.""")
 
 	# Run make to make the icons
 	Popen(["make"], stdout=PIPE).communicate()
+
+	# Convert the python2 bits in the source to python3
+	convert2to3()
 
 	setup(
 		name="btrfs-gui",
@@ -53,3 +79,5 @@ setup-helper.py script instead.""")
 					 glob.glob(os.path.join("img", "*.gif")) + ["img/icons.svg"]),
 					],
 		)
+
+	reset2to3()
