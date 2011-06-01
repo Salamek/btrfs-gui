@@ -12,7 +12,7 @@ import itertools
 import os.path
 import stat
 
-from mount import Filesystem
+from btrfsgui.hlp.mount import Filesystem
 import btrfsgui.btrfs as btrfs
 import btrfsgui.helper
 

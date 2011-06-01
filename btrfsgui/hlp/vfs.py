@@ -10,7 +10,7 @@ import os.path
 import json
 import stat
 
-from mount import Filesystem
+from btrfsgui.hlp.mount import Filesystem
 import btrfsgui.helper
 
 _filters = { "all": lambda s: True,
