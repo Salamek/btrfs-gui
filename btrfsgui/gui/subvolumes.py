@@ -6,7 +6,7 @@ import tkinter.messagebox
 import tkinter.simpledialog
 import os.path
 
-from btrfsgui.gui.lib import image_or_blank
+from btrfsgui.gui.lib import image_or_blank, ScrolledTreeview
 from btrfsgui.requester import Requester, ex_handler
 import btrfsgui.btrfs as btrfs
 
@@ -57,11 +57,11 @@ class Subvolumes(Frame, Requester):
 		self.columnconfigure(0, weight=1)
 		self.rowconfigure(0, weight=1)
 
-		self.sv_list = Treeview(self, columns=["name", "id"])
+		frame, self.sv_list = ScrolledTreeview(self, columns=["name", "id"])
 		self.sv_list.heading("#0", text="path", anchor="w")
 		self.sv_list.heading("id", text="id", anchor="w")
 		self.sv_list.heading("name", text="name", anchor="w")
-		self.sv_list.grid(sticky=N+S+W+E)
+		frame.grid(sticky=N+S+W+E)
 
 		self.ctx_menu = Menu(self, tearoff=False)
 		self.ctx_menu.add_command(label="Snapshot",
@@ -210,7 +210,8 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 		"""
 		master.columnconfigure(1, weight=1)
 		master.rowconfigure(0, weight=1)
-		self.file_list = Treeview(master, columns=["path"], displaycolumns=[])
+		frm, self.file_list = ScrolledTreeview(master, columns=["path"],
+											   displaycolumns=[])
 		self.file_list.insert("", "end",
 							  text="@",
 							  iid="@",
@@ -219,7 +220,7 @@ class NewSubvolume(tkinter.simpledialog.Dialog):
 							  image=self.parent.img["subv"])
 		self.populate_dir("@", ".")
 		self.file_list.bind("<<TreeviewOpen>>", self.opened_dir)
-		self.file_list.grid(sticky=N+S+E+W, padx=8, pady=8, columnspan=2)
+		frm.grid(sticky=N+S+E+W, padx=8, pady=8, columnspan=2)
 
 		Label(master, text="New subvolume:")\
 					  .grid(row=1, column=0, padx=8, pady=8)
