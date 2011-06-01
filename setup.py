@@ -37,6 +37,9 @@ If you want to install the btrfs-gui root helper on its own, use the
 setup-helper.py script instead.""")
 		sys.exit(1)
 
+	# Run make to make the icons
+	Popen(["make"], stdout=PIPE).communicate()
+
 	setup(
 		name="btrfs-gui",
 		version=get_version_string(),
