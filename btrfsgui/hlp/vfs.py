@@ -10,8 +10,7 @@ import os.path
 import json
 import stat
 
-from mount import Filesystem
-import btrfsgui.helper
+from btrfsgui.hlp.mount import Filesystem
 
 _filters = { "all": lambda s: True,
 			 "dir": stat.S_ISDIR,

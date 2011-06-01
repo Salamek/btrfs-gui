@@ -12,9 +12,9 @@ import itertools
 import os.path
 import stat
 
-from mount import Filesystem
+from btrfsgui.hlp.mount import Filesystem
 import btrfsgui.btrfs as btrfs
-import btrfsgui.helper
+from btrfsgui.hlp.lib import HelperException
 
 def local_path(fs, tree, inode):
 	"""Return the full path (as a list of names) of the object with
@@ -29,7 +29,7 @@ def local_path(fs, tree, inode):
 							 buf=buf,
 							 structure=btrfs.inode_ref)
 		if not items:
-			raise btrfsgui.helper.HelperException(
+			raise HelperException(
 				"Item {0} in tree {1} has no INODE_REF".format(inode, tree))
 
 		header, raw_data, data = items[0]
@@ -173,13 +173,13 @@ def sv_snap(params):
 		# Check the source status
 		st = os.stat(fs.fullpath(source))
 		if not is_subvol(st):
-			raise btrfsgui.helper.HelperException("Not a subvolume")
+			raise HelperException("Not a subvolume")
 		sys.stderr.write("Opening source path {0}\n".format(source))
 		source_fd = fs.open(source)
 
 		# Check the destination status
 		if os.path.exists(fs.fullpath(dest)):
-			raise btrfsgui.helper.HelperException("Destination exists")
+			raise HelperException("Destination exists")
 		sys.stderr.write("Opening destination path {0}\n".format(dest_path))
 		dest_fd = fs.open(dest_path)
 
