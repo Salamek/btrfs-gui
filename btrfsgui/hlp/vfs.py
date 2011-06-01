@@ -11,7 +11,6 @@ import json
 import stat
 
 from btrfsgui.hlp.mount import Filesystem
-import btrfsgui.helper
 
 _filters = { "all": lambda s: True,
 			 "dir": stat.S_ISDIR,

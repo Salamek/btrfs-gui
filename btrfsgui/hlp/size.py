@@ -9,7 +9,7 @@ import json
 
 from btrfsgui.hlp.mount import Filesystem
 import btrfsgui.btrfs as btrfs
-import btrfsgui.helper
+from btrfsgui.hlp.lib import HelperException
 
 def df(params):
 	"""Collect information on the usage of the filesystem. Replicate
@@ -59,9 +59,9 @@ def volume_df(params):
 							 structure=btrfs.dev_item)
 
 		if len(items) > 1:
-			raise btrfsgui.helper.HelperException("More than one record for this devid!")
+			raise HelperException("More than one record for this devid!")
 		if len(items) < 1:
-			raise btrfsgui.helper.HelperException("devid not found")
+			raise HelperException("devid not found")
 
 		res = {}
 		header, raw_data, data = items[0]
@@ -104,7 +104,7 @@ def volume_df(params):
 									  structure=btrfs.chunk,
 									  number=1)
 				if len(chunks) != 1:
-					raise btrfsgui.helper.HelperException("Wrong number of results from searching for a single chunk key ({0})".format(len(chunks)))
+					raise HelperException("Wrong number of results from searching for a single chunk key ({0})".format(len(chunks)))
 				header, raw_data, chunk_info = chunks[0]
 
 				chunk_length = chunk_info[0]
@@ -118,11 +118,11 @@ def volume_df(params):
 									   structure=btrfs.block_group_item,
 									   number=1)
 				if len(extents) != 1:
-					raise btrfsgui.helper.HelperException("Wrong number of results from searching for a single extent key ({0})".format(len(extents)))
+					raise HelperException("Wrong number of results from searching for a single extent key ({0})".format(len(extents)))
 				header, raw_data, extent_info = extents[0]
 
 				if header[2] != chunk_length:
-					raise btrfsgui.helper.HelperException("Chunk length inconsistent: chunk tree says {0} bytes, extent tree says {1} bytes".format(chunk_length, header[2]))
+					raise HelperException("Chunk length inconsistent: chunk tree says {0} bytes, extent tree says {1} bytes".format(chunk_length, header[2]))
 				chunk_used = extent_info[0]
 													  
 				if chunk_type not in res["usage"]:

@@ -8,11 +8,7 @@ import hlp.globalops
 import hlp.vfs
 import hlp.size
 import hlp.subvol
-
-class HelperException(Exception):
-	def __init__(self, msg, value=500):
-		self.message = msg
-		self.rv = value
+from hlp.lib import HelperException
 
 def quit_all(params):
 	sys.exit(0)
