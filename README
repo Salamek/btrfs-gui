@@ -6,11 +6,20 @@ display, and manage btrfs-specific operations on btrfs filesystems
 either on the local machine, or on a remote one (via ssh).
 
 The application requires the use of python 3.x for the GUI, and can
-run the root-level helper using python 2.x (python 3.x version coming
-shortly).
+run the root-level helper using python 2.x or python 3.x.
 
 More information, and the latest version, can be found from the
 project's web pages at http://carfax.org.uk/btrfs-gui/
+
+Installation
+============
+
+$ sudo python3 setup.py install
+
+If you need to install the helper script on a server, without
+installing the GUI components:
+
+$ sudo python setup-helper.py install
 
 Copyright and Licensing
 =======================
