@@ -5,6 +5,7 @@ from tkinter.ttk import *
 import tkinter.messagebox
 import tkinter.simpledialog
 import os.path
+import collections
 
 from btrfsgui.gui.lib import image_or_blank
 from btrfsgui.requester import Requester, ex_handler
@@ -15,7 +16,8 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 	"""
 	def __init__(self, parent, comms):
 		self.result = False
-		self.devices = []
+		self.sel_devices = collections.OrderedDict()
+		self.all_devices = collections.OrderedDict()
 		Requester.__init__(self, comms)
 		tkinter.simpledialog.Dialog.__init__(self, parent)
 
@@ -74,7 +76,9 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 
 		frm = LabelFrame(master, text="Devices")
 		frm.columnconfigure(4, weight=1)
-		self.device_list = Treeview(frm)
+		self.device_list = Treeview(frm, columns=("rdev",),
+									displaycolumns=())
+		self.device_list.bind("<Double-Button-1>", self.selection)
 		self.device_list.grid(columnspan=5, sticky=N+S+E+W, padx=4, pady=4)
 		self.device_filter = StringVar()
 		self.device_filter.set("dev")
@@ -102,14 +106,14 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 		"""Enable/disable the buttons according to which options are
 		possible
 		"""
-		if len(self.devices) < 4:
+		if len(self.sel_devices) < 4:
 			state = ["disabled"]
 		else:
 			state = ["!disabled"]
 		self.dbuttons["RAID-10"].state(state)
 		self.mbuttons["RAID-10"].state(state)
 
-		if len(self.devices) < 2:
+		if len(self.sel_devices) < 2:
 			state = ["disabled"]
 		else:
 			state = ["!disabled"]
@@ -124,9 +128,6 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 		# Clear the existing list
 		self.device_list.delete(*self.device_list.get_children())
 
-		for dev in self.devices:
-			self.device_list.insert("", "end", text="* " + dev["fullname"])
-
 		# Ask the root helper for a filtered list of devices, based on
 		# our options
 		cmd = ["ls_blk"]
@@ -138,13 +139,46 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 				 "uuid": "/dev/disk/by-uuid",
 				 "path": "/dev/disk/by-path" }[self.device_filter.get()]
 		cmd.append(path)
-
 		rv, message, items = self.request_array(*cmd)
-		for dev in sorted(list(items), key=lambda x: x["fullname"]):
+
+		self.all_devices = collections.OrderedDict()
+		for i in sorted(list(items), key=lambda x: x["fullname"]):
+			self.all_devices[i["rdev"]] = i
+
+		self.update_device_list()
+
+	def update_device_list(self):
+		"""Update the list of devices, without calling out to the far end
+		"""
+		# Fill the devices we've selected
+		for devid, dev in self.sel_devices.items():
+			self.device_list.insert("", "end", text="* " + dev["fullname"],
+									values=(dev["rdev"],))
+
+		for devid, dev in self.all_devices.items():
 			pos = "end"
-			if dev in self.devices:
+			if devid in self.sel_devices:
 				continue
-			self.device_list.insert("", "end", text=dev["fullname"])
+			self.device_list.insert("", "end", text=dev["fullname"],
+									values=(dev["rdev"],))
+
+	def selection(self, ev):
+		"""User has double-clicked on a device: flip between one state
+		and another
+		"""
+		rowid = self.device_list.identify_row(ev.y)
+		if rowid == "":
+			return
+		item = self.device_list.item(rowid)
+		devid = item["values"][0]
+
+		if devid in self.sel_devices:
+			del self.sel_devices[devid]
+		else:
+			self.sel_devices[devid] = self.all_devices[devid]
+
+		self.buttons_valid()
+		self.fill_device_list()
 
 	def validate(self):
 		"""Check that the data in the dialog is sane.
