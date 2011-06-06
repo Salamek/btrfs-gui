@@ -6,10 +6,19 @@ import tkinter.messagebox
 import tkinter.simpledialog
 import os.path
 import collections
+import json
 
 from btrfsgui.gui.lib import image_or_blank
 from btrfsgui.requester import Requester, ex_handler
 import btrfsgui.btrfs as btrfs
+
+REP_TYPES = ("Single", "RAID-0", "RAID-1", "RAID-10")
+# Map from display rep types to mkfs parameters
+REP_MAP = { "Single": "single",
+			"RAID-0": "raid0",
+			"RAID-1": "raid1",
+			"RAID-10": "raid10",
+			}
 
 class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 	"""Show options for making a filesystem
@@ -25,7 +34,24 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 	def apply(self):
 		"""Process the data in this dialog
 		"""
-		pass
+		cmd = [ "mkfs" ]
+		# List of devices
+		cmd.append(json.dumps([d["fullname"] for d in self.sel_devices.values()]))
+		# Profiles
+		cmd += [ REP_MAP[self.data_profile.get()],
+				 REP_MAP[self.meta_profile.get()] ]
+		# Additional options
+		options = {}
+		if self.label.get() != "":
+			options["label"] = self.label.get()
+		if self.mixed.get():
+			options["mixed"] = True
+		cmd.append(json.dumps(options))
+		# Do the command
+		rv, message, items = self.request(*cmd)
+		# Indicate success (we don't get to this point if the command
+		# failed -- it throws an exception)
+		self.result = True
 
 	def body(self, master):
 		"""Create the dialog body
@@ -56,7 +82,7 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 		self.meta_profile.set("RAID-1")
 		self.dbuttons = {}
 		self.mbuttons = {}
-		for i, lbl in enumerate(("Single", "RAID-0", "RAID-1", "RAID-10")):
+		for i, lbl in enumerate(REP_TYPES):
 			Label(frm, text=lbl).grid(row=i+1, column=0, sticky=W, padx=4)
 			self.dbuttons[lbl] = Radiobutton(frm, value=lbl,
 											 variable=self.data_profile)
@@ -104,7 +130,8 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 
 	def buttons_valid(self):
 		"""Enable/disable the buttons according to which options are
-		possible
+		possible. Return value indicates whether the current selection
+		is possible.
 		"""
 		if len(self.sel_devices) < 4:
 			state = ["disabled"]
@@ -120,6 +147,17 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 		self.dbuttons["RAID-0"].state(state)
 		self.mbuttons["RAID-0"].state(state)
 		self.dbuttons["RAID-1"].state(state)
+
+		# Check for disabled/selected states
+		for t in REP_TYPES:
+			if (self.data_profile == t
+				and "disabled" in self.dbuttons[t].state()):
+				return False
+			if (self.meta_profile == t
+				and "disabled" in self.mbuttons[t].state()):
+				return False
+
+		return True
 
 	@ex_handler
 	def fill_device_list(self):
@@ -181,6 +219,14 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 		self.fill_device_list()
 
 	def validate(self):
-		"""Check that the data in the dialog is sane.
+		"""Check that the data in the dialog is sane. Checks are
+		limited: ensure that the RAID levels are feasible with this
+		many devices.
 		"""
-		pass
+		if not self.buttons_valid():
+			tkinter.messagebox.showerror(
+				"Incorrect options",
+				"Selected replication levels need more devices to build on")
+			return False
+
+		return True
