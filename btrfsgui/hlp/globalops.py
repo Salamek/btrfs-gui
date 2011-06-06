@@ -85,7 +85,8 @@ def mkfs(parameters):
 		command += [ "-M" ]
 	command += devices
 
-	subprocess.check_call(command)
+	with open("/dev/null", "w") as devnull:
+		subprocess.check_call(command, stdout=devnull)
 
 
 def find_btrfs_binary(name="btrfs"):
