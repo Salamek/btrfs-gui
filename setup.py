@@ -35,7 +35,7 @@ def convert2to3():
 	"""Automatically convert the python2 bits to python3 before installing
 	"""
 	patch = open("convert.patch", "w")
-	devnull = open("/dev/null", "w")
+	devnull = open(os.devnull, "w")
 	call(["2to3", "btrfsgui/hlp", "btrfs-gui-helper"],
 		 stdout=patch, stderr=devnull)
 	patch.close()

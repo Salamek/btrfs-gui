@@ -23,7 +23,7 @@ _found_btrfs = None
 def scan(parameters):
 	global _found_btrfs
 
-	devnull = open("/dev/null", "w")
+	devnull = open(os.devnull, "w")
 
 	if _found_btrfs is None:
 		_found_btrfs = find_btrfs_binary()
