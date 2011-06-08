@@ -10,13 +10,14 @@ import os.path
 
 from btrfsgui.hlp.lib import HelperException
 
-SEARCH_PATH = [ "/usr/local/sbin",
-				"/usr/local/bin",
-				"/sbin",
-				"/bin",
-				"/usr/sbin",
-				"/usr/bin",
-				"." ]
+SEARCH_PATH = (os.environ["PATH"].split(os.pathsep)
+			   + [ "/usr/local/sbin",
+				   "/usr/local/bin",
+				   "/sbin",
+				   "/bin",
+				   "/usr/sbin",
+				   "/usr/bin",
+				   "." ])
 _found_btrfs = None
 
 def scan(parameters):
