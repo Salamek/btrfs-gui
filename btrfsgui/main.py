@@ -14,7 +14,7 @@ def main():
 					  metavar="<cmd>",
 					  help="Use <cmd> for gaining root privileges")
 	parser.add_option("-H", "--helper", action="store", dest="helper",
-					  metavar="<path>", default="./btrfs-gui-helper",
+					  metavar="<path>", default="btrfs-gui-helper",
 					  help="Location of the root-helper to use")
 	parser.add_option("--force-root", action="store_true", default=False,
 					  dest="force_root",

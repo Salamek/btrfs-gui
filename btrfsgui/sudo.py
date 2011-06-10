@@ -14,8 +14,16 @@ def init_root_process(params):
 	"""Initialise a co-process that runs as root, and which we can
 	communicate with to talk to the FS directly.
 	"""
-	cmd = [params.helper]
-	
+	pthshell = ":".join(["/sbin", "/bin", "/usr/sbin", "/usr/bin",
+						 "/usr/local/sbin", "/usr/bin", "."])
+	cmd = [ "/bin/sh", "-c",
+			"PATH=$PATH:{0}; {1}".format(pthshell, params.helper) ]
+
+	# sh -c "PATH=$PATH:$MYPATH; btrfs-gui-helper"
+	# sudo sh -c "PATH=$PATH:$MYPATH; btrfs-gui-helper"
+	# ssh remotebox sh -c "PATH=$PATH:$MYPATH; btrfs-gui-helper"
+	# ssh remotebox sudo sh -c "PATH=$PATH:$MYPATH; btrfs-gui-helper"
+
 	if os.geteuid() != 0:
 		if params.sudo_helper:
 			cmd[0:0] = params.sudo_helper.split(" ")
