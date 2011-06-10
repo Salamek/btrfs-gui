@@ -36,3 +36,4 @@ img/%.gif: img/%.png
 
 clean:
 	@find -name \*~ -o -name \*.pyc -exec rm -f {} \;
+	@rm -rf build
