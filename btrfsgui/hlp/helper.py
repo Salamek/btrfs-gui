@@ -72,6 +72,7 @@ def parse(line):
 COMMANDS = {
 	"quit": quit_all,
 	"scan": btrfsgui.hlp.globalops.scan,
+	"mkfs": btrfsgui.hlp.globalops.mkfs,
 	"df": btrfsgui.hlp.size.df,
 	"vol_df": btrfsgui.hlp.size.volume_df,
 	"sub_list": btrfsgui.hlp.subvol.sv_list,
@@ -80,4 +81,5 @@ COMMANDS = {
 	"sub_snap": btrfsgui.hlp.subvol.sv_snap,
 	"sub_def": btrfsgui.hlp.subvol.sv_def,
 	"ls": btrfsgui.hlp.vfs.ls,
+	"ls_blk": btrfsgui.hlp.vfs.ls_blk,
 	}

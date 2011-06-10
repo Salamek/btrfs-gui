@@ -9,6 +9,7 @@ from tkinter.ttk import *
 from btrfsgui.gui.lib import image_or_blank, ScrolledTreeview
 from btrfsgui.gui.usagedisplay import UsageDisplay
 from btrfsgui.gui.subvolumes import Subvolumes
+from btrfsgui.gui.mkfs import MkfsDialog
 from btrfsgui.requester import Requester, ex_handler
 
 class Application(Frame, Requester):
@@ -84,6 +85,8 @@ class Application(Frame, Requester):
 		self.file_menu.add_command(label="Scan for filesystems",
 								   accelerator="Ctrl-Shift-S",
 								   command=self.scan)
+		self.file_menu.add_command(label="New Filesystem",
+								   command=self.new_filesystem)
 		self.file_menu.add_separator()
 		self.file_menu.add_command(label="Quit", accelerator="Ctrl-Q",
 								   command=self.quit_all)
@@ -126,6 +129,13 @@ class Application(Frame, Requester):
 
 		for w in self.datapane.tabs():
 			self.nametowidget(w).set_selected(fs)
+
+	def new_filesystem(self):
+		"""Create a new filesystem
+		"""
+		win = MkfsDialog(self, self.comms)
+		if win.result:
+			self.scan()
 
 	@ex_handler
 	def scan(self):
