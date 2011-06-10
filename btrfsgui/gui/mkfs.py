@@ -8,7 +8,7 @@ import os.path
 import collections
 import json
 
-from btrfsgui.gui.lib import image_or_blank
+from btrfsgui.gui.lib import image_or_blank, ScrolledTreeview
 from btrfsgui.requester import Requester, ex_handler
 import btrfsgui.btrfs as btrfs
 
@@ -102,10 +102,10 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 
 		frm = LabelFrame(master, text="Devices")
 		frm.columnconfigure(4, weight=1)
-		self.device_list = Treeview(frm, columns=("rdev",),
-									displaycolumns=())
+		devfrm, self.device_list = ScrolledTreeview(frm, columns=("rdev",),
+													displaycolumns=())
 		self.device_list.bind("<Double-Button-1>", self.selection)
-		self.device_list.grid(columnspan=5, sticky=N+S+E+W, padx=4, pady=4)
+		devfrm.grid(columnspan=5, sticky=N+S+E+W, padx=4, pady=4)
 		self.device_filter = StringVar()
 		self.device_filter.set("dev")
 		Radiobutton(frm, text="/dev", command=self.fill_device_list,
