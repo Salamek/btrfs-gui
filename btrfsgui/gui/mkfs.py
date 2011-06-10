@@ -36,7 +36,7 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 		"""
 		cmd = [ "mkfs" ]
 		# List of devices
-		cmd.append(json.dumps([d["fullname"] for d in self.sel_devices.values()]))
+		cmd.append(json.dumps([d["cname"] for d in self.sel_devices.values()]))
 		# Profiles
 		cmd += [ REP_MAP[self.data_profile.get()],
 				 REP_MAP[self.meta_profile.get()] ]
@@ -108,9 +108,6 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 		self.device_list.grid(columnspan=5, sticky=N+S+E+W, padx=4, pady=4)
 		self.device_filter = StringVar()
 		self.device_filter.set("dev")
-		Radiobutton(frm, text="All", command=self.fill_device_list,
-					variable=self.device_filter, value="all")\
-					.grid(row=1, column=0, padx=4, pady=4)
 		Radiobutton(frm, text="/dev", command=self.fill_device_list,
 					variable=self.device_filter, value="dev")\
 					.grid(row=1, column=1, padx=4, pady=4)
@@ -122,6 +119,9 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 					.grid(row=1, column=3, padx=4, pady=4)
 		Radiobutton(frm, text="By path", command=self.fill_device_list,
 					variable=self.device_filter, value="path")\
+					.grid(row=1, column=4, padx=4, pady=4)
+		Radiobutton(frm, text="LVM volumes", command=self.fill_device_list,
+					variable=self.device_filter, value="lvm")\
 					.grid(row=1, column=4, padx=4, pady=4)
 		frm.grid(row=0, column=1, sticky=N+S+E+W, padx=4, pady=4, rowspan=4)
 
@@ -168,20 +168,25 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 
 		# Ask the root helper for a filtered list of devices, based on
 		# our options
-		cmd = ["ls_blk"]
-		if self.device_filter.get() == "all":
-			cmd.append("-r")
-		path = { "all": "/dev",
-				 "dev": "/dev",
-				 "id": "/dev/disk/by-id",
-				 "uuid": "/dev/disk/by-uuid",
-				 "path": "/dev/disk/by-path" }[self.device_filter.get()]
-		cmd.append(path)
-		rv, message, items = self.request_array(*cmd)
+		rv, message, items = self.request_array("ls_blk")
+
+		filt, sortkey = {
+			"dev": (lambda x: os.path.dirname(x["cname"]) == "/dev",
+					lambda x: x["cname"]),
+			"id": (lambda x: "by-id" in x,
+				   lambda x: x["by-id"]),
+			"uuid": (lambda x: "by-uuid" in x,
+					 lambda x: x["by-uuid"]),
+			"path": (lambda x: "by-path" in x,
+					 lambda x: x["by-path"]),
+			"lvm": (lambda x: "lv" in x,
+					lambda x: x["vg"] + " : " + x["lv"]),
+			}[self.device_filter.get()]
 
 		self.all_devices = collections.OrderedDict()
-		for i in sorted(list(items), key=lambda x: x["fullname"]):
-			self.all_devices[i["rdev"]] = i
+		for dev in sorted(filter(filt, items), key=sortkey):
+			dev["fullname"] = os.path.basename(sortkey(dev))
+			self.all_devices[dev["rdev"]] = dev
 
 		self.update_device_list()
 

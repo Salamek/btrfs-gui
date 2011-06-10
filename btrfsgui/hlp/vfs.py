@@ -42,49 +42,7 @@ def ls(params):
 			_output_file_details(typefilter, path, name)
 
 def ls_blk(params):
-	"""Return a listing of the block devices in a directory
-	"""
-	recursive = False
-	while True:
-		p = params.pop(0)
-		if p[0] != "-":
-			break
-		if p == "-r":
-			recursive = True
-	typefilter = _filters["block"]
-
-	if recursive:
-		for path, dirs, files in os.walk(p):
-			for f in files:
-				_output_file_details(typefilter, path, f)
-	else:
-		for f in os.listdir(p):
-			_output_file_details(typefilter, p, f)
-
-def _output_file_details(typefilter, p, f):
-	filename = os.path.join(p, f)
-	try:
-		stats = os.stat(filename)
-	except:
-		return
-	if not typefilter(stats.st_mode):
-		return
-	res = { "name": f,
-			"path": p,
-			"fullname": filename,
-			"mode": stats.st_mode,
-			"inode": stats.st_ino,
-			}
-	if stat.S_ISBLK(stats.st_mode) or stat.S_ISCHR(stats.st_mode):
-		res["rdev"] = stats.st_rdev
-
-	sys.stdout.write(json.dumps(res))
-	sys.stdout.write("\n")
-	sys.stdout.flush()
-
-def _device_list():
-	"""Return a list of all known block devices on this system, with
-	synonyms
+	"""Return a listing of all the block devices in /dev
 	"""
 	devs = {}
 	for path, dirs, files in os.walk("/dev"):
@@ -94,6 +52,7 @@ def _device_list():
 		for f in files:
 			if f.startswith("."):
 				continue
+
 			fullname = os.path.join(path, f)
 			try:
 				stats = os.stat(fullname)
@@ -101,6 +60,7 @@ def _device_list():
 				continue
 			if not stat.S_ISBLK(stats.st_mode):
 				continue
+
 			dev = devs.setdefault(stats.st_rdev,
 								  {"rdev": stats.st_rdev,
 								   "alias": [],
@@ -108,6 +68,7 @@ def _device_list():
 			if not os.path.islink(fullname):
 				dev["cname"] = fullname
 			dev["alias"].append(fullname)
+
 			if lastdir == "by-id":
 				dev["by-id"] = fullname
 			if lastdir == "by-label":
@@ -137,4 +98,7 @@ def _device_list():
 				else:
 					sys.stderr.write("LVM device name with no apparent LV part {0}: ignoring LVM metadata\n".format(f))
 
-	return devs
+	for dev in devs.values():
+		sys.stdout.write(json.dumps(dev))
+		sys.stdout.write("\n")
+		sys.stdout.flush()
