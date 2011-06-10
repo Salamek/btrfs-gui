@@ -167,7 +167,8 @@ class Application(Frame, Requester):
 		if self.selected_fs is not None:
 			self.set_selected(self.selected_fs)
 		else:
-			self.set_selected(obj[0])
+			if obj:
+				self.set_selected(obj[0])
 
 	def quit_all(self):
 		self.quit()
