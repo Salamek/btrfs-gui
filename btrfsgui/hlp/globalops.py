@@ -37,6 +37,7 @@ def scan(parameters):
 
 	fslist = []
 	for line in scandata:
+		line = line.decode()
 		if line.startswith("Label:"):
 			tmp, label, tmp, uuid = line.split()
 			if label == "none":
