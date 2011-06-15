@@ -8,6 +8,7 @@ import btrfsgui.hlp.globalops
 import btrfsgui.hlp.vfs
 import btrfsgui.hlp.size
 import btrfsgui.hlp.subvol
+import btrfsgui.hlp.devices
 from btrfsgui.hlp.lib import HelperException
 
 def quit_all(params):
@@ -82,4 +83,5 @@ COMMANDS = {
 	"sub_def": btrfsgui.hlp.subvol.sv_def,
 	"ls": btrfsgui.hlp.vfs.ls,
 	"ls_blk": btrfsgui.hlp.vfs.ls_blk,
+	"rm_dev": btrfsgui.hlp.devices.rm_dev,
 	}
