@@ -30,7 +30,8 @@ class Filesystem(object):
 			"""Return and maintain a file descriptor for a path within
 			this filesystem.
 			"""
-			fd = os.open(os.path.join(_local_dir, self.manager.uuid, dir),
+			fd = os.open(os.path.join(_local_dir, str(os.getpid()),
+									  self.manager.uuid, dir),
 						 os.O_DIRECTORY)
 			self.manager.fds.append(fd)
 			return fd
@@ -39,7 +40,8 @@ class Filesystem(object):
 			"""Return a full local filesystem path to the given object
 			in this filesystem
 			"""
-			return os.path.join(_local_dir, self.manager.uuid, path)
+			return os.path.join(_local_dir, str(os.getpid()),
+								self.manager.uuid, path)
 
 	def __init__(self, uuid):
 		self.uuid = uuid
@@ -48,7 +50,8 @@ class Filesystem(object):
 	def __enter__(self):
 		global _local_dir
 		mount(self.uuid)
-		self.fd = os.open(os.path.join(_local_dir, self.uuid), os.O_DIRECTORY)
+		path = os.path.join(_local_dir, str(os.getpid()), self.uuid)
+		self.fd = os.open(path, os.O_DIRECTORY)
 		return self._DirFD(self)
 
 	def __exit__(self, exc_type, exc_value, traceback):
@@ -66,9 +69,12 @@ def cleanup():
 	if _local_dir is None:
 		return
 
-	for d in os.listdir(_local_dir):
+	mysubdir = os.path.join(_local_dir, str(os.getpid()))
+
+	for d in os.listdir(mysubdir):
 		umount(d, fatal=False)
 	try:
+		os.rmdir(mysubdir)
 		os.rmdir(_local_dir)
 	except:
 		pass
@@ -86,9 +92,9 @@ def mount(uuid):
 		_local_dir = tempfile.mkdtemp(prefix="btrfs-gui-")
 		sys.stderr.write("Helper: Created private directory {0}\n".format(_local_dir))
 
-	dirpath = os.path.join(_local_dir, uuid)
+	dirpath = os.path.join(_local_dir, str(os.getpid()), uuid)
 	try:
-		os.mkdir(dirpath)
+		os.makedirs(dirpath)
 	except OSError, ex:
 		if ex.errno == 17: # File exists
 			return
@@ -106,7 +112,7 @@ def umount(uuid, fatal=True):
 	earliest opportunity. Otherwise, try each step of the process in
 	turn, regardless of whether it succeeded or failed.
 	"""
-	dirpath = os.path.join(_local_dir, uuid)
+	dirpath = os.path.join(_local_dir, str(os.getpid()), uuid)
 	cmd = ["umount", dirpath]
 
 	if fatal:
