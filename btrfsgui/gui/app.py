@@ -58,6 +58,7 @@ class Application(Frame, Requester):
 		fsl_frame.grid(sticky=N+S+E+W)
 		self.sidebar.add(fs_frame)
 		self.fs_list.bind("<Double-Button-1>", self.select_fs)
+		self.fs_list.bind("<Button-3>", self.fs_context_menu)
 
 		self.images = { "fs": image_or_blank(file="img/fs_icon.gif"),
 						"fs-sel": image_or_blank(file="img/fs_icon_open.gif"),
@@ -172,3 +173,45 @@ class Application(Frame, Requester):
 
 	def quit_all(self):
 		self.quit()
+
+	def fs_context_menu(self, ev):
+		"""Work out what in the fs list the user right-clicked on, and
+		pop up a suitable context menu for it.
+		"""
+		rowid = self.fs_list.identify_row(ev.y)
+		if rowid == "":
+			return
+
+		ctx_menu = Menu(self, tearoff=False)
+
+		if rowid.find(":") != -1:
+			# User clicked on a device
+			fsid = self.fs_list.parent(rowid)
+			devid = rowid.split(":", 1)[1]
+			device = self.fs_list.item(rowid, "text")
+			ctx_menu.add_command(
+				label="Remove",
+				command=lambda: self.remove_device(fsid, device))
+		else:
+			# User clicked on a filesystem
+			ctx_menu.add_command(
+				label="Add device",
+				command=lambda: self.add_device(rowid))
+
+		ctx_menu.bind("<FocusOut>", lambda e: ctx_menu.unpost())
+		ctx_menu.post(ev.x_root, ev.y_root)
+		ctx_menu.focus_set()
+
+	@ex_handler
+	def remove_device(self, fsid, device):
+		"""Remove a device from a filesystem
+		"""
+		# FIXME: Check whether there's an obvious fail on disk size
+		# and stop the user from doing it.
+		rv, text, obj = self.request("rm_dev", fsid, device)
+
+	@ex_handler
+	def add_device(self, fsid):
+		"""Add a device to a filesystem
+		"""
+		pass
