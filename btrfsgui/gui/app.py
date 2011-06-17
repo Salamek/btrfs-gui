@@ -119,17 +119,18 @@ class Application(Frame, Requester):
 	def set_selected(self, fs):
 		"""Set the given selection in the UI
 		"""
-		self.selected_fs = fs
+		self.selected_fs = None
 
 		for afs in self.filesystems:
 			# The row ID is the UUID of the filesystem
 			if afs["uuid"] == fs["uuid"]:
+				self.selected_fs = afs
 				self.fs_list.item(afs["uuid"], image=self.images["fs-sel"])
 			else:
 				self.fs_list.item(afs["uuid"], image=self.images["fs"])
 
 		for w in self.datapane.tabs():
-			self.nametowidget(w).set_selected(fs)
+			self.nametowidget(w).set_selected(self.selected_fs)
 
 	def new_filesystem(self):
 		"""Create a new filesystem
