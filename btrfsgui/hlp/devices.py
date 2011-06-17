@@ -33,3 +33,13 @@ def rm_dev(params):
 		target=_rm_dev_async,
 		args=(uuid, devname),)
 	proc.start()
+
+def add_dev(params):
+	"""Add a device to the FS.
+	"""
+	uuid = params[0]
+	devname = params[1]
+	with Filesystem(uuid) as fsfd:
+		buf = btrfs.sized_array()
+		btrfs.ioctl_vol_args.pack_into(buf, 0, 0, devname)
+		fcntl.ioctl(fsfd, btrfs.IOC_DEV_ADD, buf)

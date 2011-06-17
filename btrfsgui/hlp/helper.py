@@ -84,4 +84,5 @@ COMMANDS = {
 	"ls": btrfsgui.hlp.vfs.ls,
 	"ls_blk": btrfsgui.hlp.vfs.ls_blk,
 	"rm_dev": btrfsgui.hlp.devices.rm_dev,
+	"add_dev": btrfsgui.hlp.devices.add_dev,
 	}
