@@ -25,8 +25,6 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 	"""
 	def __init__(self, parent, comms):
 		self.result = False
-		self.sel_devices = collections.OrderedDict()
-		self.all_devices = collections.OrderedDict()
 		Requester.__init__(self, comms)
 		tkinter.simpledialog.Dialog.__init__(self, parent)
 
@@ -36,7 +34,7 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 		"""
 		cmd = [ "mkfs" ]
 		# List of devices
-		cmd.append(json.dumps([d["cname"] for d in self.sel_devices.values()]))
+		cmd.append(json.dumps([d["cname"] for d in self.devices.selection()]))
 		# Profiles
 		cmd += [ REP_MAP[self.data_profile.get()],
 				 REP_MAP[self.meta_profile.get()] ]
@@ -73,6 +71,12 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 		frm.grid(row=0, column=0, sticky=N+S+E+W,
 				 ipadx=4, ipady=4, padx=4, pady=4)
 
+		frm = LabelFrame(master, text="Devices")
+		frm.columnconfigure(4, weight=1)
+		self.devices = DeviceList(frm, self, self.buttons_valid)
+		self.devices.grid()
+		frm.grid(row=0, column=1, sticky=N+S+E+W, padx=4, pady=4, rowspan=4)
+
 		frm = LabelFrame(master, text="Replication")
 		Label(frm, text="Data").grid(row=0, column=1, padx=4)
 		Label(frm, text="Metadata").grid(row=0, column=2, padx=4)
@@ -100,47 +104,22 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 			.grid(row=0, column=0, padx=4, pady=4)
 		frm.grid(row=2, column=0, sticky=N+S+E+W, padx=4, pady=4)
 
-		frm = LabelFrame(master, text="Devices")
-		frm.columnconfigure(4, weight=1)
-		devfrm, self.device_list = ScrolledTreeview(frm, columns=("rdev",),
-													displaycolumns=())
-		self.device_list.bind("<Double-Button-1>", self.selection)
-		devfrm.grid(columnspan=5, sticky=N+S+E+W, padx=4, pady=4)
-		self.device_filter = StringVar()
-		self.device_filter.set("dev")
-		Radiobutton(frm, text="/dev", command=self.fill_device_list,
-					variable=self.device_filter, value="dev")\
-					.grid(row=1, column=1, padx=4, pady=4)
-		Radiobutton(frm, text="By ID", command=self.fill_device_list,
-					variable=self.device_filter, value="id")\
-					.grid(row=1, column=2, padx=4, pady=4)
-		Radiobutton(frm, text="By UUID", command=self.fill_device_list,
-					variable=self.device_filter, value="uuid")\
-					.grid(row=1, column=3, padx=4, pady=4)
-		Radiobutton(frm, text="By path", command=self.fill_device_list,
-					variable=self.device_filter, value="path")\
-					.grid(row=1, column=4, padx=4, pady=4)
-		Radiobutton(frm, text="LVM volumes", command=self.fill_device_list,
-					variable=self.device_filter, value="lvm")\
-					.grid(row=1, column=4, padx=4, pady=4)
-		frm.grid(row=0, column=1, sticky=N+S+E+W, padx=4, pady=4, rowspan=4)
-
 		self.bind("<Escape>", self.cancel)
-		self.fill_device_list()
 
 	def buttons_valid(self):
 		"""Enable/disable the buttons according to which options are
 		possible. Return value indicates whether the current selection
 		is possible.
 		"""
-		if len(self.sel_devices) < 4:
+		print("Checking buttons valid")
+		if len(self.devices.selection()) < 4:
 			state = ["disabled"]
 		else:
 			state = ["!disabled"]
 		self.dbuttons["RAID-10"].state(state)
 		self.mbuttons["RAID-10"].state(state)
 
-		if len(self.sel_devices) < 2:
+		if len(self.devices.selection()) < 2:
 			state = ["disabled"]
 		else:
 			state = ["!disabled"]
@@ -159,16 +138,61 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 
 		return True
 
+	def validate(self):
+		"""Check that the data in the dialog is sane. Checks are
+		limited: ensure that the RAID levels are feasible with this
+		many devices.
+		"""
+		if not self.buttons_valid():
+			tkinter.messagebox.showerror(
+				"Incorrect options",
+				"Selected replication levels need more devices to build on")
+			return False
+
+		return True
+
+class DeviceList(Frame):
+	"""List of devices.
+	"""
+	def __init__(self, parent, requester,
+				 update_cb=lambda: True, multiple=False):
+		Frame.__init__(self, parent)
+		self.requester = requester
+		self.update_cb = update_cb
+
+		self.sel_devices = collections.OrderedDict()
+		self.all_devices = collections.OrderedDict()
+
+		devfrm, self.device_list = ScrolledTreeview(
+			self, columns=("rdev",), displaycolumns=())
+		self.device_list.bind("<Double-Button-1>", self._user_selection)
+		devfrm.grid(columnspan=5, sticky=N+S+E+W, padx=4, pady=4)
+		self.device_filter = StringVar()
+		self.device_filter.set("dev")
+		Radiobutton(self, text="/dev", command=self.fill_device_list,
+					variable=self.device_filter, value="dev")\
+					.grid(row=1, column=1, padx=4, pady=4)
+		Radiobutton(self, text="By ID", command=self.fill_device_list,
+					variable=self.device_filter, value="id")\
+					.grid(row=1, column=2, padx=4, pady=4)
+		Radiobutton(self, text="By UUID", command=self.fill_device_list,
+					variable=self.device_filter, value="uuid")\
+					.grid(row=1, column=3, padx=4, pady=4)
+		Radiobutton(self, text="By path", command=self.fill_device_list,
+					variable=self.device_filter, value="path")\
+					.grid(row=1, column=4, padx=4, pady=4)
+		Radiobutton(self, text="LVM volumes", command=self.fill_device_list,
+					variable=self.device_filter, value="lvm")\
+					.grid(row=1, column=4, padx=4, pady=4)
+		self.fill_device_list()
+
 	@ex_handler
 	def fill_device_list(self):
 		"""Fill the list of available devices
 		"""
-		# Clear the existing list
-		self.device_list.delete(*self.device_list.get_children())
-
 		# Ask the root helper for a filtered list of devices, based on
 		# our options
-		rv, message, items = self.request_array("ls_blk")
+		rv, message, items = self.requester.request_array("ls_blk")
 
 		filt, sortkey = {
 			"dev": (lambda x: os.path.dirname(x["cname"]) == "/dev",
@@ -188,11 +212,14 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 			dev["fullname"] = os.path.basename(sortkey(dev))
 			self.all_devices[dev["rdev"]] = dev
 
-		self.update_device_list()
+		self._update_device_list()
 
-	def update_device_list(self):
+	def _update_device_list(self):
 		"""Update the list of devices, without calling out to the far end
 		"""
+		# Clear the existing list
+		self.device_list.delete(*self.device_list.get_children())
+
 		# Fill the devices we've selected
 		for devid, dev in self.sel_devices.items():
 			self.device_list.insert("", "end", text="* " + dev["fullname"],
@@ -205,7 +232,7 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 			self.device_list.insert("", "end", text=dev["fullname"],
 									values=(dev["rdev"],))
 
-	def selection(self, ev):
+	def _user_selection(self, ev):
 		"""User has double-clicked on a device: flip between one state
 		and another
 		"""
@@ -220,18 +247,11 @@ class MkfsDialog(tkinter.simpledialog.Dialog, Requester):
 		else:
 			self.sel_devices[devid] = self.all_devices[devid]
 
-		self.buttons_valid()
-		self.fill_device_list()
+		self.update_cb()
+		self._update_device_list()
 
-	def validate(self):
-		"""Check that the data in the dialog is sane. Checks are
-		limited: ensure that the RAID levels are feasible with this
-		many devices.
+	def selection(self):
+		"""Return the list of selected devices
 		"""
-		if not self.buttons_valid():
-			tkinter.messagebox.showerror(
-				"Incorrect options",
-				"Selected replication levels need more devices to build on")
-			return False
-
-		return True
+		print(self.sel_devices.values())
+		return self.sel_devices.values()
