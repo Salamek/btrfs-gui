@@ -5,11 +5,13 @@
 
 from tkinter import *
 from tkinter.ttk import *
+import tkinter.messagebox
+import tkinter.simpledialog
 import os.path
 import collections
 
 from btrfsgui.gui.lib import ScrolledTreeview
-from btrfsgui.requester import ex_handler
+from btrfsgui.requester import Requester, ex_handler
 
 class DeviceList(Frame):
 	"""List of devices.
@@ -113,5 +115,38 @@ class DeviceList(Frame):
 	def selection(self):
 		"""Return the list of selected devices
 		"""
-		print(self.sel_devices.values())
 		return self.sel_devices.values()
+
+
+class DeviceListDialogue(tkinter.simpledialog.Dialog, Requester):
+    """Basic device dialogue box for selecting a single block device
+    """
+    def __init__(self, parent, comms):
+        self.result = None
+        Requester.__init__(self, comms)
+        tkinter.simpledialog.Dialog.__init__(self, parent)
+
+    @ex_handler
+    def apply(self):
+        """Process the data in this dialogue
+        """
+        self.result = list(self.devices.selection())
+
+    def body(self, master):
+        """Create the dialogue box body
+        """
+        frm = LabelFrame(master, text="Devices")
+        self.devices = DeviceList(frm, self)
+        self.devices.grid()
+        frm.grid(sticky=N+S+E+W, padx=4, pady=4)
+
+    def validate(self):
+        """Check that the selection makes sense
+        """
+        if len(self.devices.selection()) != 1:
+            tkinter.messagebox.showerror(
+                "Unexpected selection",
+                "Exactly one device should be selected")
+            return False
+
+        return True

@@ -10,6 +10,7 @@ from btrfsgui.gui.lib import image_or_blank, ScrolledTreeview
 from btrfsgui.gui.usagedisplay import UsageDisplay
 from btrfsgui.gui.subvolumes import Subvolumes
 from btrfsgui.gui.mkfs import MkfsDialog
+from btrfsgui.gui.devices import DeviceListDialogue
 from btrfsgui.requester import Requester, ex_handler
 
 class Application(Frame, Requester):
@@ -215,4 +216,8 @@ class Application(Frame, Requester):
 	def add_device(self, fsid):
 		"""Add a device to a filesystem
 		"""
-		pass
+		# Open up a dialogue window and do the work inside that
+		dialogue = DeviceListDialogue(self, self.comms)
+		if dialogue.result is not None:
+			devname = dialogue.result[0]["cname"]
+			rv, text, obj = self.request("add_dev", fsid, devname)
